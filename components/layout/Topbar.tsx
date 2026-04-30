@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/Buttons/Buttons";
+import { Button } from "@/components/buttons/Buttons";
 import { FaArrowRotateRight, FaPlus, FaBars } from "react-icons/fa6";
 
 interface TopbarProps {
