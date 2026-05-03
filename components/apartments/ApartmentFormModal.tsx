@@ -14,7 +14,7 @@ interface Apartment {
 	address: string;
 	clientId: Client;
 	airbnbIcalUrl?: string;
-	status: "available" | "occupied" | "maintenance";
+	platform: "airbnb" | "other";
 	description?: string;
 }
 
@@ -31,7 +31,7 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Props
 		name: apartment?.name ?? "",
 		address: apartment?.address ?? "",
 		clientId: apartment?.clientId?._id ?? "",
-		status: apartment?.status ?? "available",
+		platform: apartment?.platform ?? "airbnb",
 		airbnbIcalUrl: apartment?.airbnbIcalUrl ?? "",
 		description: apartment?.description ?? "",
 	});
@@ -42,7 +42,7 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Props
 			.then(setClients);
 	}, []);
 
-	function set(field: string, value: string) {
+	function set(field: keyof typeof form, value: string) {
 		setForm((prev) => ({ ...prev, [field]: value }));
 	}
 
@@ -84,20 +84,20 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Props
 								))}
 							</select>
 						</Field>
-
-						<Field label="Statut">
-							<select value={form.status} onChange={(e) => set("status", e.target.value)} className={inputCls}>
-								<option value="available">Disponible</option>
-								<option value="occupied">Occupé</option>
-								<option value="maintenance">Maintenance</option>
+						<Field label="Plateforme">
+							<select value={form.platform} onChange={(e) => set("platform", e.target.value)} className={inputCls}>
+								<option value="airbnb">Airbnb</option>
+								<option value="other">Autre</option>
 							</select>
 						</Field>
 					</div>
 
-					<Field label="URL iCal Airbnb">
-						<input type="url" value={form.airbnbIcalUrl} onChange={(e) => set("airbnbIcalUrl", e.target.value)} placeholder="https://www.airbnb.com/calendar/ical/..." className={inputCls} />
-						<p className="mt-1 text-xs text-gray-500">Airbnb → Calendrier → Exporter → Copier le lien</p>
-					</Field>
+					{form.platform === "airbnb" && (
+						<Field label="URL iCal Airbnb">
+							<input type="url" value={form.airbnbIcalUrl} onChange={(e) => set("airbnbIcalUrl", e.target.value)} placeholder="https://www.airbnb.com/calendar/ical/..." className={inputCls} />
+							<p className="mt-1 text-xs text-gray-500">Airbnb → Calendrier → Exporter → Copier le lien</p>
+						</Field>
+					)}
 
 					<Field label="Description">
 						<textarea

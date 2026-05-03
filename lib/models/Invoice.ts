@@ -19,6 +19,7 @@ const InvoiceSchema = new Schema(
 			required: true,
 		},
 		date: { type: Date, required: true },
+		dueDate: { type: Date },
 		lines: [InvoiceLineSchema],
 		total: { type: Number, required: true },
 		status: {
@@ -30,4 +31,6 @@ const InvoiceSchema = new Schema(
 	{ timestamps: true },
 );
 
-export const InvoiceModel = models.Invoice || model("Invoice", InvoiceSchema);
+export function getInvoiceModel(conn: mongoose.Connection) {
+	return conn.models.Invoice || conn.model("Invoice", InvoiceSchema);
+}

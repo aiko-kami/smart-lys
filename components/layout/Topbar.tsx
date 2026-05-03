@@ -7,6 +7,15 @@ interface TopbarProps {
 }
 
 export default function Topbar({ onMenuOpen }: TopbarProps) {
+	const today = new Date();
+
+	const formattedDate = today.toLocaleDateString("fr-FR", {
+		weekday: "long",
+		day: "numeric",
+		month: "long",
+		year: "numeric",
+	});
+
 	return (
 		<header className="border-b border-white/10 bg-[#0B1220] px-4 py-4 sm:px-6 lg:px-8">
 			<div className="flex items-center gap-8">
@@ -19,7 +28,7 @@ export default function Topbar({ onMenuOpen }: TopbarProps) {
 				<div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 					<div>
 						<h1 className="text-2xl font-bold sm:text-3xl">Bonjour Pauline</h1>
-						<p className="text-gray-400 pt-1">Samedi 25 avril 2026</p>
+						<p className="pt-1 text-gray-400 capitalize">{formattedDate}</p>
 					</div>
 					<div className="flex flex-col gap-3 sm:flex-row">
 						<Button btnColor="grayOutline" btnRounded="xl">

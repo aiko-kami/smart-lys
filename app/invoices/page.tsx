@@ -1,12 +1,21 @@
-import StatsGrid from "@/components/dashboard/StatsGrid";
-import TasksCard from "@/components/dashboard/TasksCard";
+import { connectDB } from "@/lib/mongodb";
+import InvoiceClient from "@/components/invoices/InvoiceClient";
+import { registerModels, getInvoiceModel } from "@/lib/models";
 
-export default function Invoices() {
-	return (
-		<>
-			hello factures
-			<StatsGrid />
-			<TasksCard />
-		</>
-	);
+async function getInvoices() {
+	const conn = await connectDB();
+
+	registerModels(conn);
+
+	const Invoice = getInvoiceModel(conn);
+
+	const invoices = await Invoice.find().populate("clientId", "name").sort({ createdAt: -1 }).lean();
+
+	return JSON.parse(JSON.stringify(invoices));
+}
+
+export default async function InvoicesPage() {
+	const invoices = await getInvoices();
+
+	return <InvoiceClient invoices={invoices} />;
 }

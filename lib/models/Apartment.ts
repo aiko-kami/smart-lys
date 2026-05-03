@@ -11,10 +11,10 @@ const ApartmentSchema = new Schema(
 		},
 		airbnbIcalUrl: { type: String, default: "" },
 		description: { type: String, default: "" },
-		status: {
+		platform: {
 			type: String,
-			enum: ["available", "occupied", "maintenance"],
-			default: "available",
+			enum: ["airbnb", "other"],
+			default: "airbnb",
 		},
 	},
 	{ collection: "apartments", timestamps: true },

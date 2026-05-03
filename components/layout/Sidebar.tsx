@@ -1,5 +1,6 @@
+import { useState } from "react";
 import Link from "next/link";
-import { FaNewspaper, FaCalendarDay, FaCartFlatbedSuitcase, FaListCheck, FaHouseChimney, FaUserGroup, FaFileInvoice } from "react-icons/fa6";
+import { FaNewspaper, FaCalendarDay, FaCartFlatbedSuitcase, FaListCheck, FaHouseChimney, FaUserGroup, FaFileInvoice, FaArrowRotateRight } from "react-icons/fa6";
 import Image from "next/image";
 
 const menu = [
@@ -17,6 +18,16 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onClose }: SidebarProps) {
+	const [loading, setLoading] = useState(false);
+	const refresh = async () => {
+		try {
+			setLoading(true);
+			await new Promise((resolve) => setTimeout(resolve, 3000));
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	return (
 		<aside className="flex h-full flex-col relative">
 			{/* Close button */}
@@ -35,13 +46,19 @@ export default function Sidebar({ onClose }: SidebarProps) {
 			{/* Navigation — clicking a link also closes the sidebar */}
 			<nav className="flex-1 space-y-1 overflow-y-auto p-3">
 				{menu.map((item) => (
-					<Link key={item.path} href={item.path} onClick={onClose}>
+					<Link key={item.path} href={item.path} prefetch={false} onClick={onClose}>
 						<span className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-gray-300 transition hover:bg-blue-500/10 hover:text-blue-400">
 							{item.icon}
 							{item.label}
 						</span>
 					</Link>
 				))}
+				<button onClick={refresh} className="w-full cursor-pointer">
+					<span className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-gray-300 transition hover:bg-emerald-500/10 hover:text-emerald-400">
+						<FaArrowRotateRight className={`shrink-0 transition-transform ${loading ? "animate-spin" : ""}`} />
+						{loading ? "Rafraîchissement..." : "Rafraîchir Airbnb"}
+					</span>
+				</button>
 			</nav>
 
 			<div className="border-t border-white/10 px-4 py-3 text-xs text-gray-500">v1.0 Smart Lys</div>

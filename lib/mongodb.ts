@@ -6,27 +6,34 @@ if (!MONGODB_URI) {
 	throw new Error("Please define MONGODB_URI_PRIVATE in .env.local");
 }
 
-declare global {
-	var mongooseConnection: mongoose.Connection | undefined;
+// Cache on the global object to survive Next.js hot reloads
+interface MongooseCache {
+	conn: mongoose.Connection | null;
+	promise: Promise<mongoose.Connection> | null;
 }
 
-export async function connectDB() {
-	if (global.mongooseConnection?.readyState === 1) {
-		console.log("Reusing DB connection:", global.mongooseConnection.name);
+declare global {
+	var mongooseCache: MongooseCache | undefined;
+}
 
-		return global.mongooseConnection;
+if (!global.mongooseCache) {
+	global.mongooseCache = { conn: null, promise: null };
+}
+
+const cache = global.mongooseCache;
+
+export async function connectDB(): Promise<mongoose.Connection> {
+	// Already connected — return immediately
+	if (cache.conn?.readyState === 1) {
+		return cache.conn;
 	}
 
-	const connection = mongoose.createConnection(MONGODB_URI, {
-		bufferCommands: false,
-	});
+	// Connection in progress — wait for it
+	if (!cache.promise) {
+		cache.promise = mongoose.createConnection(MONGODB_URI, { bufferCommands: false }).asPromise();
+	}
 
-	await connection.asPromise();
-
-	global.mongooseConnection = connection;
-
-	console.log("MongoDB connected successfully");
-	console.log("Connected DB:", connection.name);
-
-	return connection;
+	cache.conn = await cache.promise;
+	console.log("MongoDB connected:", cache.conn.name);
+	return cache.conn;
 }
