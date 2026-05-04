@@ -4,47 +4,13 @@ import { useState, useMemo, useEffect } from "react";
 import { GoDotFill } from "react-icons/go";
 import { FaAirbnb, FaTriangleExclamation, FaXmark } from "react-icons/fa6";
 import ApartmentFormModal from "./ApartmentFormModal";
+import type { Apartment, ClientRef } from "@/types";
+import { AVATAR_BG, initials } from "@/utils";
 
 // ── Types ────────────────────────────────────────────────
 
-interface Client {
-	_id: string;
-	name: string;
-}
-
-interface Apartment {
-	_id: string;
-	name: string;
-	address: string;
-	clientId: Client;
-	airbnbIcalUrl?: string;
-	platform: "airbnb" | "other";
-	description?: string;
-	occupied?: boolean; // dérivé de l'iCal côté serveur
-}
-
 interface ApartmentsClientProps {
 	apartments: Apartment[];
-}
-
-// ── Config ───────────────────────────────────────────────
-
-const AVATAR_BG = [
-	"bg-blue-500/20 text-blue-400",
-	"bg-teal-500/20 text-teal-400",
-	"bg-amber-500/20 text-amber-400",
-	"bg-purple-500/20 text-purple-400",
-	"bg-pink-500/20 text-pink-400",
-	"bg-green-500/20 text-green-400",
-];
-
-function initials(name: string) {
-	return name
-		.split(" ")
-		.map((w) => w[0])
-		.join("")
-		.toUpperCase()
-		.slice(0, 2);
 }
 
 // ── Delete confirmation modal ─────────────────────────────
@@ -75,7 +41,7 @@ function DeleteModal({ apartment, deleting, onConfirm, onCancel }: DeleteModalPr
 				<div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
 					<p className="font-medium">{apartment.name}</p>
 					<p className="mt-0.5 text-xs text-gray-400">{apartment.address}</p>
-					{apartment.clientId?.name && <p className="mt-0.5 text-xs text-gray-500">Client : {apartment.clientId.name}</p>}
+					{typeof apartment.clientId !== "string" && apartment.clientId?.name && <p className="mt-0.5 text-xs text-gray-500">Client : {apartment.clientId.name}</p>}
 				</div>
 
 				<p className="mb-6 text-sm text-gray-400">
@@ -124,7 +90,7 @@ function PlatformIcon({ platform }: { platform: "airbnb" | "other" }) {
 
 export default function ApartmentsClient({ apartments: initial }: ApartmentsClientProps) {
 	const [apartments, setApartments] = useState<Apartment[]>(initial);
-	const [allClients, setAllClients] = useState<Client[]>([]);
+	const [allClients, setAllClients] = useState<ClientRef[]>([]);
 	const [search, setSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [platformFilter, setPlatformFilter] = useState("all");
@@ -146,7 +112,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 		return apartments.filter((a) => {
 			const matchSearch = a.name.toLowerCase().includes(search.toLowerCase()) || a.address.toLowerCase().includes(search.toLowerCase());
 			const matchPlatform = platformFilter === "all" || a.platform === platformFilter;
-			const matchClient = clientFilter === "all" || a.clientId?._id === clientFilter;
+			const matchClient = clientFilter === "all" || (typeof a.clientId !== "string" && a.clientId._id === clientFilter);
 			const matchStatus = statusFilter === "all" || (statusFilter === "occupied" && a.occupied) || (statusFilter === "available" && !a.occupied);
 			return matchSearch && matchPlatform && matchClient && matchStatus;
 		});
@@ -321,7 +287,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 											</div>
 										</td>
 										<td className="px-5 py-4">
-											<p className="truncate text-sm text-gray-300">{apt.clientId?.name ?? "—"}</p>
+											<p className="truncate text-sm text-gray-300">{typeof apt.clientId === "string" ? "—" : (apt.clientId?.name ?? "—")}</p>
 										</td>
 										<td className="px-5 py-4 text-center">
 											<div className="flex justify-center">
@@ -361,7 +327,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 											</div>
 											<p className="mt-0.5 truncate text-xs text-gray-400">{apt.address}</p>
 											<div className="mt-2 flex items-center justify-between gap-2">
-												<p className="text-xs text-gray-400">{apt.clientId?.name ?? "—"}</p>
+												<p className="text-xs text-gray-400">{typeof apt.clientId === "string" ? "—" : (apt.clientId?.name ?? "—")}</p>
 												<StatusBadge occupied={apt.occupied} />
 											</div>
 											<div className="mt-3 flex gap-2">
