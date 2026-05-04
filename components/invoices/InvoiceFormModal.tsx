@@ -23,8 +23,8 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 	const [form, setForm] = useState({
 		number: invoice?.number ?? "",
 		clientId: invoice?.clientId ? (typeof invoice.clientId === "string" ? invoice.clientId : invoice.clientId._id) : "",
-		date: invoice?.date ?? "",
-		dueDate: invoice?.dueDate ?? "",
+		date: invoice?.date ? invoice.date.slice(0, 10) : "",
+		dueDate: invoice?.dueDate ? invoice.dueDate.slice(0, 10) : "",
 		status: invoice?.status ?? "draft",
 		lines: invoice?.lines ?? ([] as InvoiceLine[]),
 	});

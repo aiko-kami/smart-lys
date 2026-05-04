@@ -10,6 +10,18 @@ function fmtDate(d: string | Date) {
 	return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+function getClientName(clientId: any) {
+	if (!clientId) return "";
+	if (typeof clientId === "string") return "";
+	return clientId.name ?? "";
+}
+
+function getClientAddress(clientId: any) {
+	if (!clientId) return "";
+	if (typeof clientId === "string") return "";
+	return clientId.address ?? "";
+}
+
 export function invoiceTemplate(invoice: Invoice, payment?: Payment | null) {
 	const BLUE = "rgb(0, 114, 200)";
 	const BLUE_DARK = "rgb(0, 80, 150)";
@@ -242,12 +254,12 @@ export function invoiceTemplate(invoice: Invoice, payment?: Payment | null) {
 
   <!-- TOP: Logo + Client -->
   <div class="top">
-      <img src="${logoBase64}" alt="Logo" width="220" />
+    <img src="${logoBase64}" width="220" />
     <div class="client-box">
       <div class="client-header">Client</div>
       <div class="client-body">
-        <div class="client-name">${invoice.clientId?.name ?? ""}</div>
-        <div class="client-addr">${invoice.clientId?.address ?? ""}</div>
+        <div class="client-name">${getClientName(invoice.clientId)}</div>
+        <div class="client-addr">${getClientAddress(invoice.clientId)}</div>
       </div>
     </div>
   </div>
