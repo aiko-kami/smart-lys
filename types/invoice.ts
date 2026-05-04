@@ -1,4 +1,4 @@
-export type InvoiceStatus = "draft" | "sent" | "paid";
+export type InvoiceStatus = "draft" | "sent" | "paid" | "late";
 
 export interface InvoiceClient {
 	_id: string;
