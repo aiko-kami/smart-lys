@@ -1,6 +1,10 @@
-import type { InvoiceStatus } from "@/types";
-import { formatStatus, statusClass } from "@/utils/invoice";
+import { GoDotFill } from "react-icons/go";
 
-export default function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
-	return <span className={`inline-block w-full rounded-full px-4 py-1 text-sm ${statusClass(status)}`}>{formatStatus(status)}</span>;
+export default function StatusBadge({ occupied }: { occupied?: boolean }) {
+	return (
+		<span className={`flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${occupied ? "bg-blue-500/10 text-blue-400" : "bg-green-500/10 text-green-400"}`}>
+			<GoDotFill className="text-[10px]" />
+			{occupied ? "Occupé" : "Disponible"}
+		</span>
+	);
 }

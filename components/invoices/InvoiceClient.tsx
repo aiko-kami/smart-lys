@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import type { Invoice, Client } from "@/types";
 import { formatDate } from "@/utils/invoice";
 import { filterInvoices } from "@/utils/invoiceFilters";
-import InvoiceStatusBadge from "@/components/ui/StatusBadge";
+import InvoiceStatusBadge from "@/components/ui/InvoiceStatusBadge";
 import InvoiceFormModal from "@/components/invoices/InvoiceFormModal";
 
 export default function InvoiceClient({ invoices: initial, clients }: { invoices: Invoice[]; clients: Client[] }) {
