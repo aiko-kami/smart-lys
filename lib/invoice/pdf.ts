@@ -8,7 +8,7 @@ export function generateInvoicePDF(invoice: Invoice) {
 	const ml = 15;
 	let y = 20;
 
-	// HEADER
+	// ── HEADER ───────────────────────────────
 	doc.setFont("helvetica", "bold");
 	doc.setFontSize(16);
 	doc.text("FACTURE", ml, y);
@@ -20,12 +20,16 @@ export function generateInvoicePDF(invoice: Invoice) {
 
 	doc.text(`N°: ${invoice.number}`, ml, y);
 	y += 6;
+
 	doc.text(`Date: ${new Date(invoice.date).toLocaleDateString("fr-FR")}`, ml, y);
 	y += 6;
 
-	doc.text(`Client: ${invoice.clientId.name}`, ml, y);
+	// ── CLIENT SAFE ACCESS ───────────────────
+	const clientName = typeof invoice.clientId === "string" ? "" : (invoice.clientId?.name ?? "");
 
-	// TABLE HEADER
+	doc.text(`Client: ${clientName}`, ml, y);
+
+	// ── TABLE HEADER ─────────────────────────
 	y += 12;
 
 	doc.setFont("helvetica", "bold");
@@ -36,7 +40,7 @@ export function generateInvoicePDF(invoice: Invoice) {
 
 	y += 8;
 
-	// LINES
+	// ── LINES ────────────────────────────────
 	doc.setFont("helvetica", "normal");
 
 	invoice.lines.forEach((l) => {
@@ -47,7 +51,7 @@ export function generateInvoicePDF(invoice: Invoice) {
 		y += 7;
 	});
 
-	// TOTAL
+	// ── TOTAL ────────────────────────────────
 	y += 10;
 	doc.setFont("helvetica", "bold");
 	doc.text(`TOTAL: ${formatMoney(invoice.total)} €`, 140, y);
