@@ -2,21 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FaXmark } from "react-icons/fa6";
-
-interface Client {
-	_id: string;
-	name: string;
-}
-
-interface Apartment {
-	_id: string;
-	name: string;
-	address: string;
-	clientId: Client;
-	airbnbIcalUrl?: string;
-	platform: "airbnb" | "other";
-	description?: string;
-}
+import type { Apartment, ClientRef } from "@/types";
 
 interface Props {
 	apartment: Apartment | null;
@@ -25,12 +11,13 @@ interface Props {
 }
 
 export default function ApartmentFormModal({ apartment, onClose, onSave }: Props) {
-	const [clients, setClients] = useState<Client[]>([]);
+	const [clients, setClients] = useState<ClientRef[]>([]);
 	const [saving, setSaving] = useState(false);
+
 	const [form, setForm] = useState({
 		name: apartment?.name ?? "",
 		address: apartment?.address ?? "",
-		clientId: apartment?.clientId?._id ?? "",
+		clientId: apartment?.clientId ? (typeof apartment.clientId === "string" ? apartment.clientId : apartment.clientId._id) : "",
 		platform: apartment?.platform ?? "airbnb",
 		airbnbIcalUrl: apartment?.airbnbIcalUrl ?? "",
 		description: apartment?.description ?? "",
@@ -39,18 +26,23 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Props
 	useEffect(() => {
 		fetch("/api/clients")
 			.then((r) => r.json())
-			.then(setClients);
+			.then((data) => setClients(data ?? []));
 	}, []);
 
-	function set(field: keyof typeof form, value: string) {
+	function set<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
 		setForm((prev) => ({ ...prev, [field]: value }));
 	}
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setSaving(true);
-		await onSave(form);
-		setSaving(false);
+
+		try {
+			await onSave(form);
+			onClose();
+		} finally {
+			setSaving(false);
+		}
 	}
 
 	return (
@@ -59,7 +51,8 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Props
 				{/* Header */}
 				<div className="mb-6 flex items-center justify-between">
 					<h2 className="text-lg font-semibold">{apartment ? "Modifier l'appartement" : "Nouvel appartement"}</h2>
-					<button onClick={onClose} className="rounded-lg border border-white/10 p-2 text-gray-400 transition hover:bg-white/10">
+
+					<button onClick={onClose} className="rounded-lg border border-white/10 p-2 text-gray-400 hover:bg-white/10">
 						<FaXmark />
 					</button>
 				</div>
@@ -84,8 +77,9 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Props
 								))}
 							</select>
 						</Field>
+
 						<Field label="Plateforme">
-							<select value={form.platform} onChange={(e) => set("platform", e.target.value)} className={inputCls}>
+							<select value={form.platform} onChange={(e) => set("platform", e.target.value as "airbnb" | "other")} className={inputCls}>
 								<option value="airbnb">Airbnb</option>
 								<option value="other">Autre</option>
 							</select>
@@ -105,16 +99,17 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Props
 							value={form.description}
 							onChange={(e) => set("description", e.target.value)}
 							placeholder="Notes ou informations complémentaires..."
-							className={inputCls + " resize-none"}
+							className={`${inputCls} resize-none`}
 						/>
 					</Field>
 
 					{/* Actions */}
 					<div className="flex gap-3 pt-2">
-						<button type="button" onClick={onClose} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm text-gray-300 transition hover:bg-white/10">
+						<button type="button" onClick={onClose} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm text-gray-300 hover:bg-white/10">
 							Annuler
 						</button>
-						<button type="submit" disabled={saving} className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:opacity-50">
+
+						<button type="submit" disabled={saving} className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50">
 							{saving ? "Enregistrement..." : apartment ? "Enregistrer" : "Créer"}
 						</button>
 					</div>

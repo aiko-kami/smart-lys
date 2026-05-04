@@ -7,7 +7,7 @@ export interface Apartment {
 	_id: string;
 	name: string;
 	address: string;
-	clientId: ClientRef;
+	clientId: string | ClientRef;
 	airbnbIcalUrl?: string;
 	platform: "airbnb" | "other";
 	description?: string;
