@@ -25,95 +25,170 @@ interface ButtonProps extends BaseButtonProps {
 	value?: string;
 }
 
-function getButtonClasses(color: ButtonColor = "blue", disabled: boolean = false): string {
-	const COLORS = {
-		gray: {
+/* ─────────────────────────────────────────────
+   TYPES SAFE COLOR SYSTEM
+──────────────────────────────────────────── */
+
+type ColorStyle = {
+	text?: string;
+	base: string;
+	hover?: string;
+	active?: string;
+	border?: string;
+	shadow?: string;
+};
+
+const COLORS: Record<ButtonColor, { normal: ColorStyle; disabled: ColorStyle }> = {
+	gray: {
+		normal: {
 			text: "text-white",
 			base: "bg-gray-500",
 			hover: "hover:bg-gray-600",
 			active: "active:bg-gray-800",
-			disabled: { base: "bg-gray-500 opacity-40" },
 		},
-		blue: {
+		disabled: {
+			text: "text-white",
+			base: "bg-gray-500 opacity-40",
+		},
+	},
+
+	blue: {
+		normal: {
 			text: "text-white",
 			base: "bg-blue-600",
 			hover: "hover:bg-blue-700",
 			active: "active:bg-blue-800",
-			disabled: { base: "bg-blue-600 opacity-40" },
 		},
-		green: {
+		disabled: {
+			text: "text-white",
+			base: "bg-blue-600 opacity-40",
+		},
+	},
+
+	green: {
+		normal: {
 			text: "text-white",
 			base: "bg-green-600",
 			hover: "hover:bg-green-700",
 			active: "active:bg-green-800",
-			disabled: { base: "bg-green-600 opacity-40" },
 		},
-		red: {
+		disabled: {
+			text: "text-white",
+			base: "bg-green-600 opacity-40",
+		},
+	},
+
+	red: {
+		normal: {
 			text: "text-white",
 			base: "bg-red-600",
 			hover: "hover:bg-red-700",
 			active: "active:bg-red-800",
-			disabled: { base: "bg-red-600 opacity-40" },
 		},
-		pink: {
+		disabled: {
+			text: "text-white",
+			base: "bg-red-600 opacity-40",
+		},
+	},
+
+	pink: {
+		normal: {
 			text: "text-white",
 			base: "bg-pink-400",
 			hover: "hover:bg-pink-500",
 			active: "active:bg-pink-700",
-			disabled: { base: "bg-pink-400 opacity-40" },
 		},
-		orange: {
+		disabled: {
+			text: "text-white",
+			base: "bg-pink-400 opacity-40",
+		},
+	},
+
+	orange: {
+		normal: {
 			text: "text-white",
 			base: "bg-orange-600",
 			hover: "hover:bg-orange-700",
 			active: "active:bg-orange-800",
-			disabled: { base: "bg-orange-600 opacity-40" },
 		},
-		yellow: {
+		disabled: {
+			text: "text-white",
+			base: "bg-orange-600 opacity-40",
+		},
+	},
+
+	yellow: {
+		normal: {
 			text: "text-white",
 			base: "bg-yellow-500",
 			hover: "hover:bg-yellow-600",
 			active: "active:bg-yellow-700",
-			disabled: { base: "bg-yellow-500 opacity-40" },
 		},
-		gradientBluePurple: {
+		disabled: {
+			text: "text-white",
+			base: "bg-yellow-500 opacity-40",
+		},
+	},
+
+	gradientBluePurple: {
+		normal: {
 			text: "text-white",
 			base: "bg-gradient-to-r from-blue-600 to-indigo-600",
 			hover: "hover:from-blue-700 hover:to-indigo-700",
 			active: "active:from-blue-800 active:to-indigo-800",
-			disabled: { base: "bg-indigo-600 opacity-40" },
 			shadow: "shadow-2xl shadow-blue-500/25",
 		},
-		gradientPurplePink: {
+		disabled: {
+			text: "text-white",
+			base: "bg-indigo-600 opacity-40",
+		},
+	},
+
+	gradientPurplePink: {
+		normal: {
 			text: "text-white",
 			base: "bg-gradient-to-r from-purple-600 to-pink-600",
 			hover: "hover:from-purple-700 hover:to-pink-700",
 			active: "active:from-purple-800 active:to-pink-800",
-			disabled: { base: "bg-pink-600 opacity-40" },
 			shadow: "shadow-2xl shadow-purple-500/25",
 		},
-		grayOutline: {
+		disabled: {
 			text: "text-white",
-			base: "",
+			base: "bg-pink-600 opacity-40",
+		},
+	},
+
+	grayOutline: {
+		normal: {
+			text: "text-white",
+			base: "bg-transparent",
+			border: "border border-slate-600",
 			hover: "hover:bg-slate-600",
 			active: "active:bg-slate-700",
-			border: "border border-2 box-border border-slate-600",
-			disabled: {
-				text: "text-gray-900",
-				base: "bg-slate-200 opacity-40",
-				border: "border border-2 box-border border-slate-300",
-			},
 		},
-	};
+		disabled: {
+			text: "text-gray-400",
+			base: "bg-slate-200 opacity-40",
+			border: "border border-slate-300",
+		},
+	},
+};
 
-	const c = COLORS[color] || COLORS.blue;
+/* ─────────────────────────────────────────────
+   SAFE CLASS BUILDER
+──────────────────────────────────────────── */
 
-	if (disabled) {
-		return [c.disabled?.text ?? c.text, c.disabled?.base ?? c.base, c.disabled?.border ?? c.border, "opacity-40 cursor-not-allowed"].filter(Boolean).join(" ");
-	}
+function getButtonClasses(color: ButtonColor = "blue", disabled = false): string {
+	const set = COLORS[color];
 
-	return [c.text, c.base, c.border, c.hover, c.active, c.shadow].filter(Boolean).join(" ");
+	const style = disabled ? set.disabled : set.normal;
+
+	return [style.text, style.base, style.border, style.hover, style.active, style.shadow, disabled ? "opacity-40 cursor-not-allowed" : ""].filter(Boolean).join(" ");
 }
+
+/* ─────────────────────────────────────────────
+   BUTTON
+──────────────────────────────────────────── */
 
 export function Button({ children, btnSize = "std", btnColor = "blue", btnRounded = "std", wFull = false, action = () => {}, type = "button", name, value, disabled = false }: ButtonProps) {
 	const sizeMap: Record<ButtonSize, string> = {
@@ -144,12 +219,22 @@ export function Button({ children, btnSize = "std", btnColor = "blue", btnRounde
 			name={name}
 			value={value}
 			disabled={disabled}
-			className={`leading-snug text-nowrap shadow-lg transition-all duration-150 ease-in-out ${sizeMap[btnSize]} ${roundedMap[btnRounded]} ${wFull ? "w-full" : ""} ${getButtonClasses(btnColor, disabled)}`}
+			className={[
+				"leading-snug text-nowrap shadow-lg transition-all duration-150 ease-in-out",
+				sizeMap[btnSize],
+				roundedMap[btnRounded],
+				wFull ? "w-full" : "",
+				getButtonClasses(btnColor, disabled),
+			].join(" ")}
 		>
 			{children}
 		</button>
 	);
 }
+
+/* ─────────────────────────────────────────────
+   CIRCLE BUTTON
+──────────────────────────────────────────── */
 
 export function ButtonCircle({ children, btnSize = "std", btnColor = "blue", action = () => {}, type = "button", name, value, disabled = false, title }: ButtonProps) {
 	const sizeMap: Record<ButtonSize, string> = {
@@ -172,7 +257,7 @@ export function ButtonCircle({ children, btnSize = "std", btnColor = "blue", act
 			value={value}
 			disabled={disabled}
 			title={title}
-			className={`rounded-full leading-snug transition duration-150 ease-in-out hover:shadow-lg ${sizeMap[btnSize]} ${getButtonClasses(btnColor, disabled)}`}
+			className={["rounded-full leading-snug transition duration-150 ease-in-out hover:shadow-lg", sizeMap[btnSize], getButtonClasses(btnColor, disabled)].join(" ")}
 		>
 			{children}
 		</button>
