@@ -40,7 +40,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
 			</button>
 			{/* Logo */}
 			<div className="flex items-center justify-center border-b border-white/10 px-4 py-3 bg-white">
-				<Image src="/images/logo.png" alt="Logo" width={200} height={200} className="object-contain" />
+				<Image src="/images/logo-conciergerie-dulys.png" alt="Logo" width={200} height={200} className="object-contain" />
 			</div>
 
 			{/* Navigation — clicking a link also closes the sidebar */}

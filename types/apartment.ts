@@ -11,6 +11,8 @@ export interface Apartment {
 	airbnbIcalUrl?: string;
 	platform: "airbnb" | "other";
 	description?: string;
+	keys?: string;
+	floor?: string;
 	occupied?: boolean;
 }
 

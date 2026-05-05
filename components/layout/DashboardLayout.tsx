@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
 		<div className="min-h-screen bg-[#070B14] text-white">
 			{/* Sidebar — always fixed overlay, never pushes content */}
-			<div className={`fixed inset-y-0 left-0 z-40 w-[280px] border-r border-white/10 bg-[#0F172A] transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+			<div className={`fixed inset-y-0 left-0 z-40 w-[240px] border-r border-white/10 bg-[#0F172A] transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
 				<Sidebar onClose={() => setSidebarOpen(false)} />
 			</div>
 

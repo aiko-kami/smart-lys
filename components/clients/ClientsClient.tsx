@@ -2,15 +2,16 @@
 
 import { useState, useMemo } from "react";
 import ClientFormModal from "./ClientFormModal";
-import DeleteClientModal from "@/components/modals/DeleteClientModal";
+import DeleteClientModal from "./DeleteClientModal";
+import ClientDetailsModal from "./ClientDetailsModal";
 import type { Client, ClientsClientProps } from "@/types";
 import { AVATAR_BG, initials, formatDate } from "@/utils";
 
 export default function ClientsClient({ clients: initial }: ClientsClientProps) {
 	const [clients, setClients] = useState<Client[]>(initial);
 	const [search, setSearch] = useState("");
-	const [modalOpen, setModalOpen] = useState(false);
-	const [editing, setEditing] = useState<Client | null>(null);
+	const [detailsTarget, setDetailsTarget] = useState<Client | null>(null);
+	const [editing, setEditing] = useState<Client | null | "new">(null);
 	const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
 	const [deleting, setDeleting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -23,14 +24,17 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 	async function handleSave(data: Partial<Client>) {
 		setError(null);
 		try {
-			if (editing) {
+			if (editing && editing !== "new") {
 				const res = await fetch(`/api/clients/${editing._id}`, {
 					method: "PUT",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
+
 				if (!res.ok) throw new Error("Erreur lors de la modification");
+
 				const updated = await res.json();
+
 				setClients((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
 			} else {
 				const res = await fetch("/api/clients", {
@@ -38,11 +42,14 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
+
 				if (!res.ok) throw new Error("Erreur lors de la création");
+
 				const created = await res.json();
+
 				setClients((prev) => [...prev, created]);
 			}
-			setModalOpen(false);
+
 			setEditing(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Une erreur est survenue");
@@ -67,12 +74,10 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 
 	function openEdit(client: Client) {
 		setEditing(client);
-		setModalOpen(true);
 	}
 
 	function openCreate() {
-		setEditing(null);
-		setModalOpen(true);
+		setEditing("new");
 	}
 
 	return (
@@ -125,11 +130,12 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 								{filtered.map((client, i) => (
 									<tr key={client._id} className="border-b border-white/10 last:border-0">
 										<td className="px-5 py-4">
-											<div className="flex min-w-0 items-center gap-3">
+											<div className="flex min-w-0 items-center gap-3" onClick={() => setDetailsTarget(client)}>
 												<div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${AVATAR_BG[i % AVATAR_BG.length]}`}>{initials(client.name)}</div>
 												<div className="min-w-0">
 													<p className="truncate text-sm font-medium">{client.name}</p>
 													{client.description && <p className="truncate text-xs text-gray-500">{client.description}</p>}
+													{client.address && <p className="truncate text-xs text-gray-500">{client.address}</p>}
 												</div>
 											</div>
 										</td>
@@ -162,12 +168,20 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 							{filtered.map((client, i) => (
 								<li key={client._id} className="border-b border-white/10 last:border-0">
 									<div className="flex items-start gap-3 p-4">
-										<div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${AVATAR_BG[i % AVATAR_BG.length]}`}>{initials(client.name)}</div>
+										<div
+											onClick={() => setDetailsTarget(client)}
+											className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold cursor-pointer ${AVATAR_BG[i % AVATAR_BG.length]}`}
+										>
+											{initials(client.name)}
+										</div>
 										<div className="min-w-0 flex-1">
-											<p className="truncate font-medium">{client.name}</p>
-											<p className="mt-0.5 truncate text-xs text-gray-400">{client.email}</p>
-											{client.phone && <p className="mt-0.5 text-xs text-gray-500">{client.phone}</p>}
-											{client.description && <p className="mt-1 text-xs text-gray-600">{client.description}</p>}
+											<div onClick={() => setDetailsTarget(client)} className="cursor-pointer">
+												<p className="truncate font-medium">{client.name}</p>
+												<p className="mt-0.5 truncate text-xs text-gray-400">{client.email}</p>
+												{client.phone && <p className="mt-0.5 text-xs text-gray-500">{client.phone}</p>}
+												{client.description && <p className="mt-1 text-xs text-gray-600">{client.description}</p>}
+												{client.address && <p className="mt-1 text-xs text-gray-600">{client.address}</p>}
+											</div>
 											<div className="mt-3 flex gap-2">
 												<button onClick={() => openEdit(client)} className="flex-1 rounded-lg border border-white/10 py-1.5 text-xs text-gray-300 transition hover:bg-white/10">
 													Éditer
@@ -191,11 +205,10 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 			</p>
 
 			{/* Form modal */}
-			{modalOpen && (
+			{editing && (
 				<ClientFormModal
-					client={editing}
+					client={editing === "new" ? null : editing}
 					onClose={() => {
-						setModalOpen(false);
 						setEditing(null);
 					}}
 					onSave={handleSave}
@@ -203,7 +216,24 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 			)}
 
 			{/* Delete modal */}
-			{deleteTarget && <DeleteClientModal client={deleteTarget} deleting={deleting} onConfirm={handleDeleteConfirm} onCancel={() => setDeleteTarget(null)} />}
+			{deleteTarget && <DeleteClientModal client={deleteTarget} deleting={deleting} onConfirm={handleDeleteConfirm} onClose={() => setDeleteTarget(null)} />}
+
+			{/* Details modal */}
+
+			{detailsTarget && (
+				<ClientDetailsModal
+					client={detailsTarget}
+					onClose={() => setDetailsTarget(null)}
+					onEdit={(client) => {
+						setDetailsTarget(null);
+						openEdit(client);
+					}}
+					onDelete={(client) => {
+						setDetailsTarget(null);
+						setDeleteTarget(client);
+					}}
+				/>
+			)}
 		</div>
 	);
 }

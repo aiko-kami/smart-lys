@@ -1,6 +1,7 @@
 "use client";
-import { Button } from "@/components/buttons/Buttons";
-import { FaArrowRotateRight, FaPlus, FaBars } from "react-icons/fa6";
+
+import { FaBars } from "react-icons/fa6";
+import Image from "next/image";
 
 interface TopbarProps {
 	onMenuOpen: () => void;
@@ -17,33 +18,22 @@ export default function Topbar({ onMenuOpen }: TopbarProps) {
 	});
 
 	return (
-		<header className="border-b border-white/10 bg-[#0B1220] px-4 py-4 sm:px-6 lg:px-8">
-			<div className="flex items-center gap-8">
-				{/* Burger button */}
-				<button onClick={onMenuOpen} aria-label="Ouvrir le menu" className="rounded-lg border border-white/10 p-2.5 text-gray-300 transition hover:bg-white/10">
-					<FaBars className="h-4 w-4" />
-				</button>
+		<header className="border-b border-white/10 bg-[#0B1220] px-4 sm:px-6 lg:pl-8 lg:pr-10">
+			<div className="flex items-center justify-between">
+				{/* LEFT: Menu + Logo */}
+				<div className="flex items-center gap-5">
+					<button onClick={onMenuOpen} aria-label="Ouvrir le menu" className="rounded-lg border border-white/10 p-2.5 text-gray-300 transition hover:bg-white/10">
+						<FaBars className="h-4 w-4" />
+					</button>
 
-				{/* Title + actions */}
-				<div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-					<div>
-						<h1 className="text-2xl font-bold sm:text-3xl">Bonjour Pauline</h1>
-						<p className="pt-1 text-gray-400 capitalize">{formattedDate}</p>
-					</div>
-					<div className="flex flex-col gap-3 sm:flex-row">
-						<Button btnColor="grayOutline" btnRounded="xl">
-							<div className="flex items-center">
-								Nouvelle facture
-								<FaPlus className="ml-2 mt-0.5" />
-							</div>
-						</Button>
-						<Button btnColor="grayOutline" btnRounded="xl">
-							<div className="flex items-center">
-								Refresh Airbnb
-								<FaArrowRotateRight className="ml-2 mt-0.5" />
-							</div>
-						</Button>
-					</div>
+					{/* Logo + Brand */}
+					<Image src="/images/logo-smart-lys.png" alt="Smart-lys" width={90} height={90} className="object-contain" />
+				</div>
+
+				{/* RIGHT: Greeting */}
+				<div className="flex flex-col items-end py-4">
+					<h1 className="text-xl font-bold sm:text-2xl">Bonjour Pauline</h1>
+					<p className="pt-1 text-sm text-gray-400 capitalize">{formattedDate}</p>
 				</div>
 			</div>
 		</header>

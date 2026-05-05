@@ -2,19 +2,11 @@
 
 import { useState } from "react";
 import { FaXmark } from "react-icons/fa6";
+
+import Modal from "@/components/ui/Modal";
 import Field from "@/components/ui/Field";
-import type { Client } from "@/types";
+import type { ClientFormModalProps } from "@/types/modal";
 import { INPUT_CLASS } from "@/utils";
-
-// ── Types ─────────────────────────────────────────────────
-
-interface ClientFormModalProps {
-	client: Client | null;
-	onClose: () => void;
-	onSave: (data: Partial<Client>) => Promise<void>;
-}
-
-// ── Component ─────────────────────────────────────────────
 
 export default function ClientFormModal({ client, onClose, onSave }: ClientFormModalProps) {
 	const [saving, setSaving] = useState(false);
@@ -25,7 +17,7 @@ export default function ClientFormModal({ client, onClose, onSave }: ClientFormM
 		phone: client?.phone ?? "",
 		address: client?.address ?? "",
 		description: client?.description ?? "",
-		startDate: client?.startDate ?? "",
+		startDate: client?.startDate ? new Date(client.startDate).toISOString().split("T")[0] : "",
 	});
 
 	function set<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
@@ -48,18 +40,18 @@ export default function ClientFormModal({ client, onClose, onSave }: ClientFormM
 	}
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center" onClick={(e) => e.target === e.currentTarget && onClose()}>
-			<div className="w-full max-h-[90vh] overflow-y-auto rounded-t-2xl bg-[#0F172A] p-6 sm:max-w-lg sm:rounded-2xl">
-				{/* Header */}
+		<Modal open={true} onClose={onClose}>
+			<div className="w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F172A] p-6 sm:max-w-lg">
+				{/* HEADER */}
 				<div className="mb-6 flex items-center justify-between">
 					<h2 className="text-lg font-semibold">{client ? "Modifier le client" : "Nouveau client"}</h2>
 
 					<button onClick={onClose} className="rounded-lg border border-white/10 p-2 text-gray-400 transition hover:bg-white/10">
-						<FaXmark />
+						<FaXmark size={16} />
 					</button>
 				</div>
 
-				{/* Form */}
+				{/* FORM */}
 				<form onSubmit={handleSubmit} className="space-y-4">
 					{/* Name + Email */}
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -99,7 +91,7 @@ export default function ClientFormModal({ client, onClose, onSave }: ClientFormM
 						/>
 					</Field>
 
-					{/* Actions */}
+					{/* ACTIONS */}
 					<div className="flex gap-3 pt-2">
 						<button type="button" onClick={onClose} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm text-gray-300 transition hover:bg-white/10">
 							Annuler
@@ -111,6 +103,6 @@ export default function ClientFormModal({ client, onClose, onSave }: ClientFormM
 					</div>
 				</form>
 			</div>
-		</div>
+		</Modal>
 	);
 }

@@ -12,19 +12,19 @@ const InvoiceLineSchema = new Schema(
 
 const InvoiceSchema = new Schema(
 	{
-		number: { type: String, required: true, unique: true },
+		number: { type: String, required: [true, "Le numéro de facture est requis"], unique: true },
 		clientId: {
 			type: Schema.Types.ObjectId,
 			ref: "Client",
-			required: true,
+			required: [true, "Le client est requis"],
 		},
-		date: { type: Date, required: true },
+		date: { type: Date, required: [true, "La date est requise"] },
 		dueDate: { type: Date },
 		lines: [InvoiceLineSchema],
-		total: { type: Number, required: true },
+		total: { type: Number, required: [true, "Le total est requis"] },
 		status: {
 			type: String,
-			enum: ["draft", "sent", "paid"],
+			enum: ["draft", "sent", "paid", "late"],
 			default: "draft",
 		},
 	},

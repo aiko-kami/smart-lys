@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useEffect } from "react";
 import ApartmentFormModal from "./ApartmentFormModal";
-import DeleteModal from "./DeleteModal";
+import DeleteApartmentModal from "./DeleteApartmentModal";
+import ApartmentDetailsModal from "./ApartmentDetailsModal";
 import PlatformIcon from "@/components/ui/PlatformIcon";
 import StatusBadge from "@/components/ui/StatusBadge";
 import type { Apartment, ApartmentsClientProps, ClientRef } from "@/types";
@@ -15,8 +16,8 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [platformFilter, setPlatformFilter] = useState("all");
 	const [clientFilter, setClientFilter] = useState("all");
-	const [modalOpen, setModalOpen] = useState(false);
-	const [editing, setEditing] = useState<Apartment | null>(null);
+	const [detailsTarget, setDetailsTarget] = useState<Apartment | null>(null);
+	const [editing, setEditing] = useState<Apartment | null | "new">(null);
 	const [deleteTarget, setDeleteTarget] = useState<Apartment | null>(null);
 	const [deleting, setDeleting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -50,14 +51,17 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 	async function handleSave(data: Partial<Apartment>) {
 		setError(null);
 		try {
-			if (editing) {
+			if (editing && editing !== "new") {
 				const res = await fetch(`/api/apartments/${editing._id}`, {
 					method: "PUT",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
+
 				if (!res.ok) throw new Error("Erreur lors de la modification");
+
 				const updated = await res.json();
+
 				setApartments((prev) => prev.map((a) => (a._id === updated._id ? { ...updated, occupied: a.occupied } : a)));
 			} else {
 				const res = await fetch("/api/apartments", {
@@ -65,11 +69,14 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
+
 				if (!res.ok) throw new Error("Erreur lors de la création");
+
 				const created = await res.json();
+
 				setApartments((prev) => [...prev, { ...created, occupied: false }]);
 			}
-			setModalOpen(false);
+
 			setEditing(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Une erreur est survenue");
@@ -94,12 +101,10 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 
 	function openEdit(apt: Apartment) {
 		setEditing(apt);
-		setModalOpen(true);
 	}
 
 	function openCreate() {
-		setEditing(null);
-		setModalOpen(true);
+		setEditing("new");
 	}
 
 	return (
@@ -198,7 +203,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 								{filtered.map((apt, i) => (
 									<tr key={apt._id} className="border-b border-white/10 last:border-0">
 										<td className="px-5 py-4">
-											<div className="flex min-w-0 items-center gap-3">
+											<div onClick={() => setDetailsTarget(apt)} className="flex min-w-0 cursor-pointer items-center gap-3 hover:opacity-80 transition">
 												<div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${AVATAR_BG[i % AVATAR_BG.length]}`}>{initials(apt.name)}</div>
 												<div className="min-w-0">
 													<p className="truncate text-sm font-medium">{apt.name}</p>
@@ -241,12 +246,14 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 									<div className="flex items-start gap-3 p-4">
 										<div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${AVATAR_BG[i % AVATAR_BG.length]}`}>{initials(apt.name)}</div>
 										<div className="min-w-0 flex-1">
-											<div className="flex items-center gap-2">
+											<div className="flex items-center gap-2 cursor-pointer" onClick={() => setDetailsTarget(apt)}>
 												<p className="truncate font-medium">{apt.name}</p>
 												<PlatformIcon platform={apt.platform} />
 											</div>
-											<p className="mt-0.5 truncate text-xs text-gray-400">{apt.address}</p>
-											<div className="mt-2 flex items-center justify-between gap-2">
+											<p className="mt-0.5 truncate text-xs text-gray-400 cursor-pointer" onClick={() => setDetailsTarget(apt)}>
+												{apt.address}
+											</p>
+											<div className="mt-2 flex items-center justify-between gap-2 cursor-pointer" onClick={() => setDetailsTarget(apt)}>
 												<p className="text-xs text-gray-400">{typeof apt.clientId === "string" ? "—" : (apt.clientId?.name ?? "—")}</p>
 												<StatusBadge occupied={apt.occupied} />
 											</div>
@@ -273,19 +280,26 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 			</p>
 
 			{/* Form modal */}
-			{modalOpen && (
-				<ApartmentFormModal
-					apartment={editing}
-					onClose={() => {
-						setModalOpen(false);
-						setEditing(null);
-					}}
-					onSave={handleSave}
-				/>
-			)}
+			{editing && <ApartmentFormModal apartment={editing === "new" ? null : editing} onClose={() => setEditing(null)} onSave={handleSave} />}
 
 			{/* Delete confirmation modal */}
-			{deleteTarget && <DeleteModal apartment={deleteTarget} deleting={deleting} onConfirm={handleDeleteConfirm} onCancel={() => setDeleteTarget(null)} />}
+			{deleteTarget && <DeleteApartmentModal apartment={deleteTarget} deleting={deleting} onConfirm={handleDeleteConfirm} onClose={() => setDeleteTarget(null)} />}
+
+			{/* Details modal */}
+			{detailsTarget && (
+				<ApartmentDetailsModal
+					apartment={detailsTarget}
+					onClose={() => setDetailsTarget(null)}
+					onEdit={(apt) => {
+						setDetailsTarget(null);
+						openEdit(apt);
+					}}
+					onDelete={(apt) => {
+						setDetailsTarget(null);
+						setDeleteTarget(apt);
+					}}
+				/>
+			)}
 		</div>
 	);
 }

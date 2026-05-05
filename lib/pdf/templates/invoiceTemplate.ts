@@ -29,7 +29,7 @@ export function invoiceTemplate(invoice: Invoice, payment?: Payment | null) {
 	const BORDER = "#cdd8ea";
 	const MUTED = "#5b606b";
 
-	const logoPath = path.join(process.cwd(), "public", "images", "logo.png");
+	const logoPath = path.join(process.cwd(), "public", "images", "logo-conciergerie-dulys.png");
 	const logoBase64 = fs.existsSync(logoPath) ? `data:image/png;base64,${fs.readFileSync(logoPath).toString("base64")}` : "";
 
 	// Minimum 5 lines in the table
