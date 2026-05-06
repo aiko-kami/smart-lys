@@ -130,7 +130,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 								{filtered.map((client, i) => (
 									<tr key={client._id} className="border-b border-white/10 last:border-0">
 										<td className="px-5 py-4">
-											<div className="flex min-w-0 items-center gap-3" onClick={() => setDetailsTarget(client)}>
+											<div className="flex min-w-0 items-center gap-3 cursor-pointer" onClick={() => setDetailsTarget(client)}>
 												<div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${AVATAR_BG[i % AVATAR_BG.length]}`}>{initials(client.name)}</div>
 												<div className="min-w-0">
 													<p className="truncate text-sm font-medium">{client.name}</p>
@@ -140,10 +140,26 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 											</div>
 										</td>
 										<td className="px-5 py-4">
-											<p className="truncate text-center text-sm text-gray-300">{client.email}</p>
+											{client.email ? (
+												<p className="truncate text-center text-sm text-gray-300">
+													<a href={`mailto:${client.email}`} className="hover:underline hover:text-white">
+														{client.email}
+													</a>
+												</p>
+											) : (
+												<p className="text-center text-sm text-gray-500">—</p>
+											)}
 										</td>
 										<td className="px-5 py-4">
-											<p className="text-center text-sm text-gray-400">{client.phone || "—"}</p>
+											{client.phone ? (
+												<p className="text-center text-sm text-gray-400">
+													<a href={`tel:${client.phone}`} className="hover:text-white hover:underline">
+														{client.phone}
+													</a>
+												</p>
+											) : (
+												<p className="text-center text-sm text-gray-500">—</p>
+											)}
 										</td>
 										<td className="px-5 py-4">
 											<p className="text-center text-sm text-gray-400">{formatDate(client.startDate)}</p>

@@ -10,7 +10,7 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
 	return (
 		<div className="flex items-start justify-between gap-4 py-3">
 			<span className="text-xs uppercase tracking-wide text-gray-500">{label}</span>
-			<div className="text-sm text-right text-white wrap-break-word max-w-[60%]">{children || "—"}</div>
+			<div className="max-w-[60%] text-right text-sm wrap-break-word">{children ? <span className="text-white">{children}</span> : <span className="text-gray-500">—</span>}</div>
 		</div>
 	);
 }
@@ -34,7 +34,15 @@ export default function ClientDetailsModal({ client, onClose, onEdit, onDelete }
 			<div className="flex items-start justify-between border-b border-white/10 p-6">
 				<div>
 					<h2 className="text-xl font-semibold">{client.name}</h2>
-					<p className="mt-1 text-sm text-gray-400">{client.email || "—"}</p>
+					{client.email ? (
+						<p className="mt-1 text-sm text-gray-300">
+							<a href={`mailto:${client.email}`} className="hover:underline hover:text-white">
+								{client.email}
+							</a>
+						</p>
+					) : (
+						<p className="text-center text-sm text-gray-500">—</p>
+					)}
 				</div>
 
 				<button onClick={onClose} className="rounded-lg border border-white/10 p-1.5 text-gray-400 transition hover:bg-white/10">
@@ -44,7 +52,11 @@ export default function ClientDetailsModal({ client, onClose, onEdit, onDelete }
 
 			{/* CONTENT */}
 			<div className="p-6 divide-y divide-white/5 md:min-w-lg">
-				<InfoRow label="Téléphone">{client.phone}</InfoRow>
+				<InfoRow label="Téléphone">
+					<a href={`tel:${client.phone}`} className="text-blue-400 hover:underline">
+						{client.phone}
+					</a>
+				</InfoRow>
 
 				<InfoRow label="Adresse">{client.address}</InfoRow>
 

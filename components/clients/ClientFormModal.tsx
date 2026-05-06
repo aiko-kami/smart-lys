@@ -40,8 +40,8 @@ export default function ClientFormModal({ client, onClose, onSave }: ClientFormM
 	}
 
 	return (
-		<Modal open={true} onClose={onClose}>
-			<div className="w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F172A] p-6 sm:max-w-lg">
+		<Modal open={true} onClose={onClose} closeOnBackdrop={false}>
+			<div className="w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F172A] p-6 sm:min-w-2xl">
 				{/* HEADER */}
 				<div className="mb-6 flex items-center justify-between">
 					<h2 className="text-lg font-semibold">{client ? "Modifier le client" : "Nouveau client"}</h2>

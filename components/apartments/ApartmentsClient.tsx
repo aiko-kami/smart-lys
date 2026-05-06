@@ -7,6 +7,8 @@ import ApartmentDetailsModal from "./ApartmentDetailsModal";
 import PlatformIcon from "@/components/ui/PlatformIcon";
 import StatusBadge from "@/components/ui/StatusBadge";
 import type { Apartment, ApartmentsClientProps, ClientRef } from "@/types";
+import type { Platform } from "@/types";
+import { PLATFORMS } from "@/utils/constants";
 import { AVATAR_BG, initials } from "@/utils";
 
 export default function ApartmentsClient({ apartments: initial }: ApartmentsClientProps) {
@@ -159,12 +161,16 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 				</select>
 				<select
 					value={platformFilter}
-					onChange={(e) => setPlatformFilter(e.target.value)}
+					onChange={(e) => setPlatformFilter(e.target.value as Platform | "all")}
 					className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
 				>
 					<option value="all">Toutes les plateformes</option>
-					<option value="airbnb">Airbnb</option>
-					<option value="other">Autre</option>
+
+					{PLATFORMS.map((p) => (
+						<option key={p.value} value={p.value}>
+							{p.label}
+						</option>
+					))}
 				</select>
 				<select
 					value={clientFilter}

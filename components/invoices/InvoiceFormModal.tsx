@@ -5,7 +5,7 @@ import { FaXmark } from "react-icons/fa6";
 
 import Modal from "@/components/ui/Modal";
 import Field from "@/components/ui/Field";
-import type { Invoice, Client, InvoiceLine } from "@/types";
+import type { InvoiceLine } from "@/types";
 import { INPUT_CLASS } from "@/utils";
 import { InvoiceFormModalProps } from "@/types/modal";
 
@@ -108,8 +108,8 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 
 	// ── UI ─────────────────────────────
 	return (
-		<Modal open={!!invoice || true} onClose={onClose}>
-			<div className="w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F172A] p-6 sm:max-w-2xl">
+		<Modal open={!!invoice || true} onClose={onClose} closeOnBackdrop={false}>
+			<div className="w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F172A] p-6 sm:min-w-2xl">
 				{/* HEADER */}
 				<div className="mb-6 flex items-center justify-between">
 					<h2 className="text-lg font-semibold">{invoice ? "Modifier la facture" : "Nouvelle facture"}</h2>
@@ -147,6 +147,7 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 					<div className="grid grid-cols-2 gap-4">
 						<Field label="Date">
 							<input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} className={INPUT_CLASS} />
+							{errors.date && <p className="text-xs text-red-400">{errors.date}</p>}
 						</Field>
 
 						<Field label="Échéance">
@@ -175,8 +176,8 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 						{errors.lines && <p className="text-xs text-red-400">{errors.lines}</p>}
 
 						{form.lines.map((line, i) => (
-							<>
-								<div key={i} className="grid grid-cols-12 gap-2">
+							<div key={i}>
+								<div className="grid grid-cols-12 gap-2">
 									<input className={`${INPUT_CLASS} col-span-5`} value={line.description} onChange={(e) => updateLine(i, "description", e.target.value)} />
 
 									<input type="number" className={`${INPUT_CLASS} col-span-2`} value={line.quantity} onChange={(e) => updateLine(i, "quantity", Number(e.target.value))} />
@@ -194,7 +195,7 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 									{errors[`line-${i}-quantity`] && <p className="text-xs text-red-400">{errors[`line-${i}-quantity`]}</p>}
 									{errors[`line-${i}-unitPrice`] && <p className="text-xs text-red-400">{errors[`line-${i}-unitPrice`]}</p>}
 								</div>
-							</>
+							</div>
 						))}
 					</div>
 

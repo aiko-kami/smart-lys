@@ -1,13 +1,20 @@
-import { FaAirbnb } from "react-icons/fa6";
+"use client";
 
-export default function PlatformIcon({ platform }: { platform: "airbnb" | "other" }) {
-	if (platform === "airbnb") {
-		return (
-			<div className="flex items-center gap-1">
-				<FaAirbnb className="mt-0.5 mr-1 shrink-0 text-xl text-[#FF385C]" title="Airbnb" />
-				<span className="text-base">Airbnb</span>
-			</div>
-		);
+import type { Platform } from "@/types";
+import { PLATFORMS } from "@/utils/constants";
+
+export default function PlatformIcon({ platform }: { platform: Platform }) {
+	const current = PLATFORMS.find((p) => p.value === platform);
+
+	if (!current) {
+		return <span className="text-gray-400">Inconnu</span>;
 	}
-	return <span className="text-gray-400">Autre</span>;
+
+	return (
+		<div className="flex items-center gap-2">
+			{"icon" in current && current.icon ? <current.icon className="text-xl" style={"color" in current ? { color: current.color } : undefined} title={current.label} /> : null}
+
+			<span className="text-base text-gray-200">{current.label}</span>
+		</div>
+	);
 }

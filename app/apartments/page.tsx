@@ -7,7 +7,6 @@ async function isOccupiedToday(icalUrl: string): Promise<boolean> {
 	// Don't even try if URL is empty or a placeholder
 	if (!icalUrl || !icalUrl.startsWith("http")) return false;
 
-	console.log("iCal: fetching", icalUrl); // ← add this
 	try {
 		const controller = new AbortController();
 		const timeout = setTimeout(() => controller.abort(), 5000);
@@ -54,16 +53,12 @@ async function getApartments() {
 }
 
 export default async function ApartmentsPage() {
-	console.log("1. Starting ApartmentsPage");
 	const conn = await connectDB();
-	console.log("2. DB connected");
 
 	getClientModel(conn);
 	const Apartment = getApartmentModel(conn);
-	console.log("3. Models ready");
 
 	const raw = await Apartment.find().populate("clientId", "name").sort({ name: 1 }).lean();
-	console.log("4. Apartments fetched:", raw.length);
 
 	// Serialize + mark all as available until real iCal URLs are set
 	const apartments = JSON.parse(JSON.stringify(raw)).map((apt: any) => ({

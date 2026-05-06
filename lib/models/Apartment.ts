@@ -13,10 +13,11 @@ const ApartmentSchema = new Schema(
 		description: { type: String, default: "" },
 		keys: { type: String, default: "" },
 		floor: { type: String, default: "" },
+		beds: { type: String, default: "" },
 		platform: {
 			type: String,
-			enum: ["airbnb", "other"],
-			default: "airbnb",
+			enum: ["airbnb", "direct", "other"],
+			default: "other",
 		},
 	},
 	{ collection: "apartments", timestamps: true },

@@ -8,9 +8,10 @@ interface ModalProps {
 	onClose: () => void;
 	children: React.ReactNode;
 	className?: string;
+	closeOnBackdrop?: boolean;
 }
 
-export default function Modal({ open, onClose, children, className = "" }: ModalProps) {
+export default function Modal({ open, onClose, children, className = "", closeOnBackdrop = true }: ModalProps) {
 	// ESC close
 	useEffect(() => {
 		if (!open) return;
@@ -32,7 +33,9 @@ export default function Modal({ open, onClose, children, className = "" }: Modal
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
 					transition={{ duration: 0.2 }}
-					onClick={onClose}
+					onClick={() => {
+						if (closeOnBackdrop) onClose();
+					}}
 				>
 					{/* BACKDROP */}
 					<div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />

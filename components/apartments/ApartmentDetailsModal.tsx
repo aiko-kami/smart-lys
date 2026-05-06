@@ -12,7 +12,7 @@ function InfoRow({ label, children }: any) {
 	return (
 		<div className="flex items-center justify-between gap-4 py-3">
 			<span className="text-xs uppercase tracking-wide text-gray-500">{label}</span>
-			<div className="text-sm text-right text-white">{children}</div>
+			<div className="text-base text-right text-gray-200">{children}</div>
 		</div>
 	);
 }
@@ -32,7 +32,7 @@ export default function ApartmentDetailsModal({ apartment, onClose, onEdit, onDe
 	return (
 		<Modal open={!!apartment} onClose={onClose}>
 			{/* HEADER */}
-			<div className="flex items-start justify-between border-b border-white/10 p-6">
+			<div className="flex items-start justify-between border-b border-white/10 p-6 sm:min-w-2xl">
 				<div>
 					<h2 className="text-xl font-semibold">{apartment.name}</h2>
 					<p className="mt-1 text-sm text-gray-400">{apartment.address}</p>
@@ -57,6 +57,8 @@ export default function ApartmentDetailsModal({ apartment, onClose, onEdit, onDe
 				<InfoRow label="Étage">{(apartment as any).floor ?? "—"}</InfoRow>
 
 				<InfoRow label="Clés">{(apartment as any).keys ?? "—"}</InfoRow>
+
+				<InfoRow label="Lits">{(apartment as any).beds ?? "—"}</InfoRow>
 
 				{/* DESCRIPTION */}
 				<div className="py-3 space-y-2">
@@ -96,25 +98,27 @@ export default function ApartmentDetailsModal({ apartment, onClose, onEdit, onDe
 					<InfoRow label="Étage">{(apartment as any).floor ?? "—"}</InfoRow>
 
 					<InfoRow label="Clés">{(apartment as any).keys ?? "—"}</InfoRow>
+
+					<InfoRow label="Lits">{(apartment as any).beds ?? "—"}</InfoRow>
 				</div>
 
 				{/* RIGHT */}
 				<div className="col-span-4 divide-y divide-white/5">
 					<div className="py-3 space-y-2">
 						<p className="text-xs uppercase text-gray-500">Description</p>
-						<p className="pl-2 text-sm text-gray-300 leading-relaxed">{(apartment as any).description || "Aucune description"}</p>
+						<p className="pl-2 text-base text-gray-200 leading-relaxed">{(apartment as any).description || "Aucune description"}</p>
 					</div>
 
 					<div className="py-3 space-y-2">
 						<p className="text-xs uppercase text-gray-500">Airbnb iCal</p>
-						<a href={(apartment as any).airbnbIcal} target="_blank" className="pl-2 text-sm text-blue-400 break-all hover:underline">
+						<a href={(apartment as any).airbnbIcal} target="_blank" className="pl-2 text-base text-blue-400 break-all hover:underline">
 							{(apartment as any).airbnbIcal || "—"}
 						</a>
 					</div>
 
 					<div className="py-3 space-y-2">
 						<p className="text-xs uppercase text-gray-500">ID</p>
-						<p className="pl-2 text-sm text-gray-400">{apartment._id}</p>
+						<p className="pl-2 text-base text-gray-200">{apartment._id}</p>
 					</div>
 				</div>
 			</div>

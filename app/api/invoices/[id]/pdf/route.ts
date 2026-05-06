@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/mongodb";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import { getInvoiceModel, getPaymentModel } from "@/lib/models";
-import puppeteer from "puppeteer";
 import { invoiceTemplate } from "@/lib/pdf/templates/invoiceTemplate";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -11,24 +12,26 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 	const Payment = getPaymentModel(conn);
 
 	const invoice = await Invoice.findById(id).populate("clientId").lean();
-
-	console.log("🚀 ~ GET ~ invoice:", invoice);
-
 	if (!invoice) {
-		return new Response("Not found", { status: 404 });
+		return new Response("Invoice not found", { status: 404 });
 	}
 
 	const payment = await Payment.findOne().lean();
+	if (!payment) {
+		return new Response("Payment not found", { status: 404 });
+	}
 
 	const html = invoiceTemplate(invoice, payment);
 
-	const browser = await puppeteer.launch();
+	const browser = await puppeteer.launch({
+		args: chromium.args,
+		executablePath: await chromium.executablePath(),
+		headless: true,
+	});
+
 	const page = await browser.newPage();
-
 	await page.setContent(html, { waitUntil: "networkidle0" });
-
 	const pdf = await page.pdf({ format: "A4", printBackground: true });
-
 	await browser.close();
 
 	return new Response(new Uint8Array(pdf).buffer, {

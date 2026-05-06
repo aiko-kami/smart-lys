@@ -1,7 +1,8 @@
 "use client";
 
-import { FaBars } from "react-icons/fa6";
 import Image from "next/image";
+import Link from "next/link";
+import { FaBars } from "react-icons/fa6";
 
 interface TopbarProps {
 	onMenuOpen: () => void;
@@ -27,7 +28,9 @@ export default function Topbar({ onMenuOpen }: TopbarProps) {
 					</button>
 
 					{/* Logo + Brand */}
-					<Image src="/images/logo-smart-lys.png" alt="Smart-lys" width={90} height={90} className="object-contain" />
+					<Link href="/">
+						<Image src="/images/logo-smart-lys.png" alt="Smart-lys" width={0} height={0} sizes="100vw" className="w-20 h-auto object-contain" />
+					</Link>
 				</div>
 
 				{/* RIGHT: Greeting */}

@@ -5,11 +5,13 @@ import { FaXmark } from "react-icons/fa6";
 
 import Modal from "@/components/ui/Modal";
 import Field from "@/components/ui/Field";
-import type { Apartment, ClientRef } from "@/types";
-import { INPUT_CLASS } from "@/utils/constants";
+import type { ClientRef } from "@/types";
+import { INPUT_CLASS, PLATFORMS } from "@/utils/constants";
 import { ApartmentFormModalProps } from "@/types/modal";
 
 export default function ApartmentFormModal({ apartment, onClose, onSave }: ApartmentFormModalProps) {
+	type Platform = (typeof PLATFORMS)[number]["value"];
+
 	const [clients, setClients] = useState<ClientRef[]>([]);
 	const [saving, setSaving] = useState(false);
 
@@ -17,10 +19,11 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Apart
 		name: apartment?.name ?? "",
 		address: apartment?.address ?? "",
 		clientId: apartment?.clientId ? (typeof apartment.clientId === "string" ? apartment.clientId : apartment.clientId._id) : "",
-		platform: apartment?.platform ?? "airbnb",
+		platform: (apartment?.platform as Platform) ?? "other",
 		airbnbIcalUrl: apartment?.airbnbIcalUrl ?? "",
 		keys: apartment?.keys ?? "",
 		floor: apartment?.floor ?? "",
+		beds: apartment?.beds ?? "",
 		description: apartment?.description ?? "",
 	});
 
@@ -47,8 +50,8 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Apart
 	}
 
 	return (
-		<Modal open={true} onClose={onClose}>
-			<div className="w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F172A] p-6 sm:max-w-lg">
+		<Modal open={true} onClose={onClose} closeOnBackdrop={false}>
+			<div className="w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F172A] p-6 sm:min-w-2xl">
 				{/* HEADER */}
 				<div className="mb-6 flex items-center justify-between">
 					<h2 className="text-lg font-semibold">{apartment ? "Modifier l'appartement" : "Nouvel appartement"}</h2>
@@ -80,9 +83,12 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Apart
 						</Field>
 
 						<Field label="Plateforme">
-							<select value={form.platform} onChange={(e) => set("platform", e.target.value as "airbnb" | "other")} className={INPUT_CLASS}>
-								<option value="airbnb">Airbnb</option>
-								<option value="other">Autre</option>
+							<select value={form.platform} onChange={(e) => set("platform", e.target.value as Platform)} className={INPUT_CLASS}>
+								{PLATFORMS.map((p) => (
+									<option key={p.value} value={p.value}>
+										{p.label}
+									</option>
+								))}
 							</select>
 						</Field>
 					</div>
@@ -101,6 +107,10 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Apart
 						</Field>
 					</div>
 
+					<Field label="Lits">
+						<input value={form.beds} onChange={(e) => set("beds", e.target.value)} className={INPUT_CLASS} />
+					</Field>
+
 					{form.platform === "airbnb" && (
 						<Field label="URL iCal Airbnb">
 							<input type="url" value={form.airbnbIcalUrl} onChange={(e) => set("airbnbIcalUrl", e.target.value)} className={INPUT_CLASS} />
@@ -114,7 +124,7 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Apart
 						</button>
 
 						<button type="submit" disabled={saving} className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white">
-							{saving ? "..." : apartment ? "Enregistrer" : "Créer"}
+							{saving ? "Enregistrement..." : apartment ? "Enregistrer" : "Créer"}
 						</button>
 					</div>
 				</form>

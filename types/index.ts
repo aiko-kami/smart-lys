@@ -4,3 +4,4 @@ export * from "./modal";
 export * from "./form";
 export * from "./invoice";
 export * from "./payment";
+export * from "./platform";
