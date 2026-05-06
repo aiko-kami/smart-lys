@@ -10,10 +10,3 @@ export interface ClientFormData {
 	description: string;
 	startDate: string;
 }
-
-// used in modal props
-export interface ClientFormModalProps {
-	client: Client | null;
-	onClose: () => void;
-	onSave: (data: Partial<Client>) => Promise<void>;
-}
