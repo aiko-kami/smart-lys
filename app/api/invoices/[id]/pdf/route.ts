@@ -28,7 +28,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 	const html = invoiceTemplate(invoice, payment);
 
 	const browser = await puppeteer.launch({
-		args: isDev ? [] : chromium.args,
+		args: isDev ? [] : [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
 		executablePath: isDev ? undefined : await chromium.executablePath(),
 		headless: true,
 		channel: isDev ? "chrome" : undefined,
