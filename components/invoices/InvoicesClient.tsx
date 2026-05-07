@@ -7,7 +7,7 @@ import InvoiceStatusBadge from "@/components/ui/InvoiceStatusBadge";
 import InvoiceFormModal from "@/components/invoices/InvoiceFormModal";
 import DeleteInvoiceModal from "@/components/invoices/DeleteInvoiceModal";
 
-export default function InvoiceClient({ invoices: initial, clients }: { invoices: Invoice[]; clients: Client[] }) {
+export default function InvoicedClient({ invoices: initial, clients }: { invoices: Invoice[]; clients: Client[] }) {
 	const [invoices, setInvoices] = useState(initial);
 
 	const [allClients] = useState<Client[]>(clients);
@@ -135,7 +135,7 @@ export default function InvoiceClient({ invoices: initial, clients }: { invoices
 					</p>
 				</div>
 
-				<button onClick={openCreate} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500">
+				<button onClick={openCreate} className="rounded-xl bg-emerald-600 bg- px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-500">
 					+ Nouvelle facture
 				</button>
 			</div>

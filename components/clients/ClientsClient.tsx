@@ -90,7 +90,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 						{clients.length} client{clients.length > 1 ? "s" : ""} enregistré{clients.length > 1 ? "s" : ""}
 					</p>
 				</div>
-				<button onClick={openCreate} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500">
+				<button onClick={openCreate} className="rounded-xl bg-indigo-600 bg- px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500">
 					+ Nouveau client
 				</button>
 			</div>

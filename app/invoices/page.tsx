@@ -1,5 +1,5 @@
 import { connectDB } from "@/lib/mongodb";
-import InvoiceClient from "@/components/invoices/InvoiceClient";
+import InvoicesClient from "@/components/invoices/InvoicesClient";
 import { registerModels, getInvoiceModel, getClientModel } from "@/lib/models";
 
 async function getInvoices() {
@@ -29,5 +29,5 @@ async function getClients() {
 export default async function InvoicesPage() {
 	const [invoices, clients] = await Promise.all([getInvoices(), getClients()]);
 
-	return <InvoiceClient invoices={invoices} clients={clients} />;
+	return <InvoicesClient invoices={invoices} clients={clients} />;
 }
