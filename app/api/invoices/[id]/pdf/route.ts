@@ -4,6 +4,8 @@ import chromium from "@sparticuz/chromium";
 import { getInvoiceModel, getPaymentModel, getClientModel } from "@/lib/models";
 import { invoiceTemplate } from "@/lib/pdf/templates/invoiceTemplate";
 
+export const runtime = "nodejs";
+
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const isDev = process.env.NODE_ENV === "development";
