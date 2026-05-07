@@ -1,7 +1,7 @@
 import { connectDB } from "@/lib/mongodb";
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
-import { getInvoiceModel, getPaymentModel } from "@/lib/models";
+import { getInvoiceModel, getPaymentModel, getClientModel } from "@/lib/models";
 import { invoiceTemplate } from "@/lib/pdf/templates/invoiceTemplate";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -11,6 +11,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 	const conn = await connectDB();
 	const Invoice = getInvoiceModel(conn);
 	const Payment = getPaymentModel(conn);
+	const Client = getClientModel(conn);
 
 	const invoice = await Invoice.findById(id).populate("clientId").lean();
 	if (!invoice) {
