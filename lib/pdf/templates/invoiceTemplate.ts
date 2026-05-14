@@ -32,9 +32,7 @@ export function invoiceTemplate(invoice: Invoice, payment?: Payment | null) {
 	const logoPath = path.join(process.cwd(), "public", "images", "logo-conciergerie-dulys.png");
 	const logoBase64 = fs.existsSync(logoPath) ? `data:image/png;base64,${fs.readFileSync(logoPath).toString("base64")}` : "";
 
-	// Minimum 5 lines in the table
 	const lines = [...invoice.lines];
-	while (lines.length < 5) lines.push({ description: "", quantity: 0, unitPrice: 0, total: 0 });
 
 	return `<!DOCTYPE html>
 <html lang="fr">

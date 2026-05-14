@@ -1,10 +1,11 @@
 "use client";
 
 import { ButtonHTMLAttributes, ReactNode } from "react";
+import { LuTrash2, LuPencil } from "react-icons/lu";
 
 type ButtonColor = "gray" | "blue" | "green" | "red" | "pink" | "orange" | "yellow" | "gradientBluePurple" | "gradientPurplePink" | "grayOutline";
 
-type ButtonSize = "xs" | "sm" | "std" | "xl" | "2xl" | "3xl" | "lg" | "sm-std" | "std-xl";
+type ButtonSize = "xs" | "sm" | "std" | "lg" | "xl" | "2xl" | "3xl";
 
 type ButtonRounded = "none" | "sm" | "std" | "lg" | "xl" | "full";
 
@@ -23,6 +24,12 @@ interface ButtonProps extends BaseButtonProps {
 	type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
 	name?: string;
 	value?: string;
+}
+
+interface ButtonActionsProps {
+	btnSize?: ButtonSize;
+	action?: () => void;
+	disabled?: boolean;
 }
 
 /* ─────────────────────────────────────────────
@@ -195,12 +202,10 @@ export function Button({ children, btnSize = "std", btnColor = "blue", btnRounde
 		xs: "text-xs px-3 py-1.5",
 		sm: "text-sm font-medium px-3 py-2",
 		std: "text-base px-4 py-2",
+		lg: "text-lg px-12 py-4 font-semibold",
 		xl: "text-xl px-4 py-2.5",
 		"2xl": "text-2xl px-4 pb-3 pt-2.5",
 		"3xl": "text-3xl px-7 pb-5 pt-3 m-4",
-		lg: "text-lg px-12 py-4 font-semibold",
-		"sm-std": "text-sm font-medium px-3 py-2 md:text-base md:px-4",
-		"std-xl": "text-base sm:text-xl py-2 px-2",
 	};
 
 	const roundedMap: Record<ButtonRounded, string> = {
@@ -241,12 +246,10 @@ export function ButtonCircle({ children, btnSize = "std", btnColor = "blue", act
 		xs: "text-xs py-2.5 px-2.5",
 		sm: "text-sm py-2 px-2",
 		std: "text-base py-2 px-2",
+		lg: "text-xl py-2 px-2",
 		xl: "text-xl py-2 px-2",
 		"2xl": "text-2xl py-2 px-2",
 		"3xl": "text-2xl py-2 px-2",
-		lg: "text-xl py-2 px-2",
-		"sm-std": "text-base py-2 px-2",
-		"std-xl": "text-base sm:text-xl py-2 px-2",
 	};
 
 	return (
@@ -260,6 +263,68 @@ export function ButtonCircle({ children, btnSize = "std", btnColor = "blue", act
 			className={["rounded-full leading-snug transition duration-150 ease-in-out hover:shadow-lg", sizeMap[btnSize], getButtonClasses(btnColor, disabled)].join(" ")}
 		>
 			{children}
+		</button>
+	);
+}
+
+/* ─────────────────────────────────────────────
+   ACTIONS BUTTONS
+──────────────────────────────────────────── */
+
+export function RemoveButton({ btnSize = "std", action = () => {}, disabled = false }: ButtonActionsProps) {
+	const sizeMap: Record<ButtonSize, string> = {
+		xs: "text-xs py-1.5 px-3 rounded-lg",
+		sm: "text-sm py-2 px-2 rounded-lg",
+		std: "text-base py-2 px-2 rounded-lg",
+		lg: "text-lg py-2 px-2 rounded-lg",
+		xl: "text-xl py-2 px-2 rounded-xl",
+		"2xl": "text-2xl py-2 px-2 rounded-xl",
+		"3xl": "text-3xl py-2 px-2 rounded-xl",
+	};
+
+	const sizeIconMap: Record<ButtonSize, number> = {
+		xs: 14,
+		sm: 14,
+		std: 16,
+		lg: 18,
+		xl: 20,
+		"2xl": 22,
+		"3xl": 24,
+	};
+
+	return (
+		<button onClick={action} disabled={disabled} className={["flex items-center gap-1.5 text-red-400 border border-red-500/20 transition hover:bg-red-500/10", sizeMap[btnSize]].join(" ")}>
+			<LuTrash2 size={sizeIconMap[btnSize]} />
+			Supprimer
+		</button>
+	);
+}
+
+export function EditButton({ btnSize = "std", action = () => {}, disabled = false }: ButtonActionsProps) {
+	const sizeMap: Record<ButtonSize, string> = {
+		xs: "text-xs py-1.5 px-3 rounded-lg",
+		sm: "text-sm py-2 px-2 rounded-lg",
+		std: "text-base py-2 px-2 rounded-lg",
+		lg: "text-lg py-2 px-2 rounded-lg",
+		xl: "text-xl py-2 px-2 rounded-xl",
+		"2xl": "text-2xl py-2 px-2 rounded-xl",
+		"3xl": "text-3xl py-2 px-2 rounded-xl",
+	};
+
+	const sizeIconMap: Record<ButtonSize, number> = {
+		xs: 14,
+		sm: 14,
+		std: 16,
+		lg: 18,
+		xl: 20,
+		"2xl": 22,
+		"3xl": 24,
+	};
+
+	return (
+		<button onClick={action} disabled={disabled} className={["flex items-center gap-1.5 text-gray-200 border border-white/10 bg-white/5 transition hover:bg-white/10", sizeMap[btnSize]].join(" ")}>
+			<LuPencil size={sizeIconMap[btnSize]} />
+			Éditer
 		</button>
 	);
 }

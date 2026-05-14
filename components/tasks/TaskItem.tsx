@@ -1,32 +1,135 @@
+"use client";
+
 import { FaRegClock, FaLocationDot } from "react-icons/fa6";
+import { LuCircleCheck, LuCircleX, LuTimer, LuClock3 } from "react-icons/lu";
+import { LiaBroomSolid, LiaToolsSolid, LiaSignInAltSolid, LiaSignOutAltSolid, LiaClipboardCheckSolid, LiaExpandSolid } from "react-icons/lia";
 
-export default function TaskItem() {
+import type { Task } from "@/types";
+import { formatDate, formatMinutes } from "@/utils";
+
+const taskTypeConfig = {
+	cleaning: {
+		icon: LiaBroomSolid,
+		bg: "bg-blue-100",
+		color: "text-blue-600",
+	},
+	checkin: {
+		icon: LiaSignInAltSolid,
+		bg: "bg-green-100",
+		color: "text-green-600",
+	},
+	checkout: {
+		icon: LiaSignOutAltSolid,
+		bg: "bg-orange-100",
+		color: "text-orange-600",
+	},
+	maintenance: {
+		icon: LiaToolsSolid,
+		bg: "bg-red-100",
+		color: "text-red-600",
+	},
+	inspection: {
+		icon: LiaClipboardCheckSolid,
+		bg: "bg-purple-100",
+		color: "text-purple-600",
+	},
+	other: {
+		icon: LiaExpandSolid,
+		bg: "bg-gray-200",
+		color: "text-gray-600",
+	},
+} as const;
+
+const priorityConfig = {
+	low: {
+		bg: "bg-green-100",
+		text: "text-green-600",
+	},
+	medium: {
+		bg: "bg-orange-100",
+		text: "text-orange-600",
+	},
+	high: {
+		bg: "bg-red-100",
+		text: "text-red-600",
+	},
+} as const;
+
+const statusConfig = {
+	pending: {
+		icon: LuTimer,
+		color: "text-amber-400",
+		label: "Tâche en attente",
+	},
+	"in progress": {
+		icon: LuClock3,
+		color: "text-teal-500",
+		label: "Tâche en cours",
+	},
+	done: {
+		icon: LuCircleCheck,
+		color: "text-green-500",
+		label: "Tâche terminée",
+	},
+	cancelled: {
+		icon: LuCircleX,
+		color: "text-red-600",
+		label: "Tâche annulée",
+	},
+} as const;
+
+interface Props {
+	task: Task;
+	onClick?: () => void;
+}
+
+export default function TaskItem({ task, onClick }: Props) {
+	const config = taskTypeConfig[task.type] ?? taskTypeConfig.other;
+	const priority = priorityConfig[task.priority] ?? priorityConfig.medium;
+
+	const status = statusConfig[task.status as keyof typeof statusConfig];
+	const StatusIcon = status?.icon;
+
+	const Icon = config.icon;
+
+	const apartment = typeof task.apartmentId === "object" ? task.apartmentId : null;
+
 	return (
-		<div className="border rounded-xl p-4 flex items-center justify-between hover:bg-muted/30 transition">
+		<div onClick={onClick} className="py-2 sm:p-4 flex items-center justify-between hover:bg-muted/30 transition cursor-pointer">
 			<div className="flex items-center gap-4">
-				<div className="w-11 h-11 rounded-full bg-blue-100 flex items-center justify-center">🧹</div>
-
+				{StatusIcon && (
+					<div className={`flex items-center justify-center`}>
+						<StatusIcon className={`text-2xl ${status.color}`} title={status.label} />
+					</div>
+				)}
+				<div className={`min-w-8 h-8 sm:w-11 sm:h-11 rounded-full flex items-center justify-center ${config.bg}`}>
+					<Icon className={`sm:text-3xl ${config.color}`} />
+				</div>
 				<div>
-					<h3 className="font-medium">Ménage complet — Appartement Riviera</h3>
+					<h3 className="font-medium text-white">{task.title}</h3>
 
-					<div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-						<div className="flex items-center gap-1">
-							<FaRegClock size={14} />
-							10h - 12h
-						</div>
+					<div className="sm:flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+						{task.duration != null && (
+							<div className="flex items-center gap-1 text-gray-400">
+								<FaRegClock className="text-sm" />
+								<span>{formatMinutes(task.duration)}</span>
+							</div>
+						)}
 
-						<div className="flex items-center gap-1">
-							<FaLocationDot size={14} />
-							Antibes
-						</div>
+						{apartment && (
+							<div className="flex items-center gap-1 text-violet-300">
+								<FaLocationDot className="text-sm" />
+								<span>{apartment.name}</span>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
 
 			<div className="text-right">
-				<div className="text-xs bg-red-100 text-red-500 px-2 py-1 rounded-full inline-block">Haute</div>
+				<div className={`text-xs px-2 py-1 rounded-full inline-block capitalize ${priority.bg} ${priority.text}`}>{task.priority}</div>
 
-				<p className="text-sm font-medium mt-2 text-blue-600">09:30</p>
+				<p className="text-sm font-medium mt-2 text-red-200">{formatDate(task.dueDate)}</p>
 			</div>
 		</div>
 	);

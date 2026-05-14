@@ -9,9 +9,7 @@ async function getTasks() {
 
 	const Task = getTaskModel(conn);
 
-	const tasks = await Task.find().populate("clientId", "name address").sort({ date: -1 }).lean();
-
-	console.log("🚀 ~ getTasks ~ tasks:", tasks);
+	const tasks = await Task.find().populate("clientId", "name address").populate("apartmentId", "name address").sort({ date: -1 }).lean();
 
 	return JSON.parse(JSON.stringify(tasks));
 }

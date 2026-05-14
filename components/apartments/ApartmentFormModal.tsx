@@ -119,11 +119,11 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Apart
 
 					{/* ACTIONS */}
 					<div className="flex gap-3 pt-6">
-						<button type="button" onClick={onClose} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm">
+						<button type="button" onClick={onClose} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm text-gray-300 transition hover:bg-white/10">
 							Annuler
 						</button>
 
-						<button type="submit" disabled={saving} className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white">
+						<button type="submit" disabled={saving} className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:opacity-50">
 							{saving ? "Enregistrement..." : apartment ? "Enregistrer" : "Créer"}
 						</button>
 					</div>

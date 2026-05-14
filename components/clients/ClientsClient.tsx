@@ -6,6 +6,7 @@ import DeleteClientModal from "./DeleteClientModal";
 import ClientDetailsModal from "./ClientDetailsModal";
 import type { Client, ClientsClientProps } from "@/types";
 import { AVATAR_BG, initials, formatDate } from "@/utils";
+import { RemoveButton, EditButton } from "@/components/buttons/Buttons";
 
 export default function ClientsClient({ clients: initial }: ClientsClientProps) {
 	const [clients, setClients] = useState<Client[]>(initial);
@@ -166,12 +167,8 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 										</td>
 										<td className="px-5 py-4">
 											<div className="flex items-center justify-center gap-2">
-												<button onClick={() => openEdit(client)} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-gray-300 transition hover:bg-white/10">
-													Éditer
-												</button>
-												<button onClick={() => setDeleteTarget(client)} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-400 transition hover:bg-red-500/10">
-													Supprimer
-												</button>
+												<EditButton action={() => openEdit(client)} btnSize="xs" />
+												<RemoveButton action={() => setDeleteTarget(client)} btnSize="xs" />
 											</div>
 										</td>
 									</tr>
@@ -199,12 +196,8 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 												{client.address && <p className="mt-1 text-xs text-gray-600">{client.address}</p>}
 											</div>
 											<div className="mt-3 flex gap-2">
-												<button onClick={() => openEdit(client)} className="flex-1 rounded-lg border border-white/10 py-1.5 text-xs text-gray-300 transition hover:bg-white/10">
-													Éditer
-												</button>
-												<button onClick={() => setDeleteTarget(client)} className="flex-1 rounded-lg border border-red-500/30 py-1.5 text-xs text-red-400 transition hover:bg-red-500/10">
-													Supprimer
-												</button>
+												<EditButton action={() => openEdit(client)} btnSize="xs" />
+												<RemoveButton action={() => setDeleteTarget(client)} btnSize="xs" />
 											</div>
 										</div>
 									</div>

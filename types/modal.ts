@@ -1,6 +1,7 @@
 import type { Client } from "./client";
 import type { Apartment } from "./apartment";
 import type { Invoice } from "./invoice";
+import type { Task } from "./task";
 
 // ── Client delete modal ───────────────────────────────
 
@@ -58,4 +59,20 @@ export interface InvoiceFormModalProps {
 	clients: Client[];
 	onClose: () => void;
 	onSave: (data: Partial<Invoice>) => Promise<void>;
+}
+
+// ── Task details modal ───────────────────────────
+
+export interface TaskDetailsModalProps {
+	task: Task | null;
+	onClose: () => void;
+	onEdit: (task: Task) => void;
+	onDelete: (task: Task) => void;
+}
+
+// ── Task form modal ─────────────────────────────
+export interface TaskFormModalProps {
+	task: Task | null;
+	onClose: () => void;
+	onSave: (data: Partial<Task>) => Promise<void>;
 }

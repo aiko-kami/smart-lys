@@ -9,8 +9,9 @@ const TaskSchema = new Schema(
 		clientId: { type: Schema.Types.ObjectId, ref: "Client" },
 		dueDate: { type: Date, required: true },
 		startDate: { type: Date },
-		status: { type: String, enum: ["pending", "in_progress", "done", "cancelled"], default: "pending" },
-		priority: { type: String, enum: ["low", "medium", "high"], default: "medium" },
+		duration: { type: Number },
+		status: { type: String, enum: ["pending", "in progress", "done", "cancelled", "N/A"], default: "pending" },
+		priority: { type: String, enum: ["low", "medium", "high", "N/A"], default: "medium" },
 		notes: { type: String, default: "" },
 	},
 	{
@@ -19,5 +20,5 @@ const TaskSchema = new Schema(
 );
 
 export function getTaskModel(conn: mongoose.Connection) {
-	return conn.models.Task || conn.model("Task", TaskSchema);
+	return conn.models.Task || conn.model("Task", TaskSchema, "tasks");
 }

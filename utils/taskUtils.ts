@@ -19,20 +19,24 @@ export function splitTasks(tasks: Task[]) {
 
 	const todayTasks: Task[] = [];
 	const upcomingTasks: Task[] = [];
+	const otherTasks: Task[] = [];
 
 	for (const task of tasks) {
-		const taskDate = new Date(task.date); // adapte si ton champ s'appelle différemment
+		const taskDate = new Date(task.dueDate);
 
 		if (isSameDay(taskDate, today)) {
 			todayTasks.push(task);
 		} else if (isBeforeDay(today, taskDate)) {
 			upcomingTasks.push(task);
+		} else {
+			otherTasks.push(task);
 		}
 	}
 
-	// optionnel : tri chronologique
-	todayTasks.sort((a, b) => +new Date(a.date) - +new Date(b.date));
-	upcomingTasks.sort((a, b) => +new Date(a.date) - +new Date(b.date));
+	// Tri chronologique
+	todayTasks.sort((a, b) => +new Date(a.dueDate) - +new Date(b.dueDate));
+	upcomingTasks.sort((a, b) => +new Date(a.dueDate) - +new Date(b.dueDate));
+	otherTasks.sort((a, b) => +new Date(a.dueDate) - +new Date(b.dueDate));
 
-	return { todayTasks, upcomingTasks };
+	return { todayTasks, upcomingTasks, otherTasks };
 }

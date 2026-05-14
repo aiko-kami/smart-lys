@@ -1,8 +1,8 @@
 export type TaskType = "cleaning" | "checkin" | "checkout" | "maintenance" | "inspection" | "other";
 
-export type TaskStatus = "pending" | "in_progress" | "done" | "cancelled";
+export type TaskStatus = "pending" | "in_progress" | "done" | "cancelled" | "N/A";
 
-export type TaskPriority = "low" | "medium" | "high";
+export type TaskPriority = "low" | "medium" | "high" | "N/A";
 
 export interface TaskClient {
 	_id: string;
@@ -24,6 +24,7 @@ export interface Task {
 	clientId?: string | TaskClient;
 	dueDate: string;
 	startDate?: string;
+	duration?: number;
 	status: TaskStatus;
 	priority: TaskPriority;
 	notes?: string;

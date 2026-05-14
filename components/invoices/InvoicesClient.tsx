@@ -185,7 +185,7 @@ export default function InvoicedClient({ invoices: initial, clients }: { invoice
 			</div>
 
 			{/* TABLE */}
-			<div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111827]">
+			<div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#111827]">
 				<table className="w-full">
 					<thead>
 						<tr className="border-b border-white/10 text-xs uppercase text-gray-500">

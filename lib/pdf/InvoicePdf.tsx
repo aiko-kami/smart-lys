@@ -293,16 +293,6 @@ export function InvoicePdf({ invoice, payment, logoBase64 }: any) {
 	});
 
 	const lines = [...invoice.lines];
-	if (lines.length < 5) {
-		while (lines.length < 5) {
-			lines.push({
-				description: "",
-				quantity: 0,
-				unitPrice: 0,
-				total: 0,
-			});
-		}
-	}
 
 	return (
 		<Document>

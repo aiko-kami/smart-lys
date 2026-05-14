@@ -5,6 +5,7 @@ import { FaXmark } from "react-icons/fa6";
 
 import Modal from "@/components/ui/Modal";
 import type { ClientDetailsModalProps } from "@/types/modal";
+import { RemoveButton, EditButton } from "@/components/buttons/Buttons";
 
 function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
 	return (
@@ -75,15 +76,10 @@ export default function ClientDetailsModal({ client, onClose, onEdit, onDelete }
 				</div>
 			</div>
 
-			{/* ACTIONS */}
-			<div className="flex justify-end gap-2 border-t border-white/10 p-4">
-				<button onClick={() => onDelete(client)} className="rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10">
-					Supprimer
-				</button>
-
-				<button onClick={() => onEdit(client)} className="rounded-xl border border-white/10 px-4 py-2 text-sm hover:bg-white/10">
-					Éditer
-				</button>
+			{/* ── FOOTER ── */}
+			<div className="mt-4 flex items-center justify-end gap-4 border-t border-white/5 px-6 py-4">
+				<RemoveButton action={() => onDelete(client)} btnSize="sm" />
+				<EditButton action={() => onEdit(client)} btnSize="sm" />
 			</div>
 		</Modal>
 	);

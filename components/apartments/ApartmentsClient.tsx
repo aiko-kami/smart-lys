@@ -10,6 +10,7 @@ import type { Apartment, ApartmentsClientProps, ClientRef } from "@/types";
 import type { Platform } from "@/types";
 import { PLATFORMS } from "@/utils/constants";
 import { AVATAR_BG, initials } from "@/utils";
+import { RemoveButton, EditButton } from "@/components/buttons/Buttons";
 
 export default function ApartmentsClient({ apartments: initial }: ApartmentsClientProps) {
 	const [apartments, setApartments] = useState<Apartment[]>(initial);
@@ -232,12 +233,8 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 										</td>
 										<td className="px-5 py-4">
 											<div className="flex items-center justify-center gap-2">
-												<button onClick={() => openEdit(apt)} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-gray-300 transition hover:bg-white/10">
-													Éditer
-												</button>
-												<button onClick={() => setDeleteTarget(apt)} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-400 transition hover:bg-red-500/10">
-													Supprimer
-												</button>
+												<EditButton action={() => openEdit(apt)} btnSize="xs" />
+												<RemoveButton action={() => setDeleteTarget(apt)} btnSize="xs" />
 											</div>
 										</td>
 									</tr>
@@ -264,12 +261,8 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 												<StatusBadge occupied={apt.occupied} />
 											</div>
 											<div className="mt-3 flex gap-2">
-												<button onClick={() => openEdit(apt)} className="flex-1 rounded-lg border border-white/10 py-1.5 text-xs text-gray-300 transition hover:bg-white/10">
-													Éditer
-												</button>
-												<button onClick={() => setDeleteTarget(apt)} className="flex-1 rounded-lg border border-red-500/30 py-1.5 text-xs text-red-400 transition hover:bg-red-500/10">
-													Supprimer
-												</button>
+												<EditButton action={() => openEdit(apt)} btnSize="xs" />
+												<RemoveButton action={() => setDeleteTarget(apt)} btnSize="xs" />
 											</div>
 										</div>
 									</div>
