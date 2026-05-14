@@ -336,18 +336,19 @@ export function InvoicePdf({ invoice, payment, logoBase64 }: any) {
 						<Text style={[styles.th, styles.col, styles.noRightBorder]}>Total</Text>
 					</View>
 					{/* BODY */}
-					{lines.map((l, i) => (
-						<View key={i} style={[styles.row, i % 2 === 0 && styles.altRow]} wrap={false}>
-							{/* DESCRIPTION (LEFT, LARGE COLUMN) */}
-							<Text style={styles.tdLeft}>{l.description}</Text>
-							{/* QUANTITY */}
-							<Text style={styles.tdRight}>{l.quantity || ""}</Text>
-							{/* UNIT PRICE */}
-							<Text style={styles.tdRight}>{l.unitPrice ? fmt(l.unitPrice) + " €" : ""}</Text>
-							{/* TOTAL */}
-							<Text style={[styles.tdRight, styles.noRightBorder]}>{l.total ? fmt(l.total) + " €" : ""}</Text>
-						</View>
-					))}
+
+					{lines.map((l, i) => {
+						const isAlt = i % 2 === 0;
+
+						return (
+							<View key={i} style={[styles.row, ...(isAlt ? [styles.altRow] : [])]} wrap={false}>
+								<Text style={styles.tdLeft}>{l.description}</Text>
+								<Text style={styles.tdRight}>{l.quantity || ""}</Text>
+								<Text style={styles.tdRight}>{l.unitPrice ? fmt(l.unitPrice) + " €" : ""}</Text>
+								<Text style={[styles.tdRight, styles.noRightBorder]}>{l.total ? fmt(l.total) + " €" : ""}</Text>
+							</View>
+						);
+					})}
 				</View>
 
 				{/* TOTAL */}
