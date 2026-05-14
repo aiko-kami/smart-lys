@@ -78,6 +78,12 @@ const statusConfig = {
 	},
 } as const;
 
+const PRIORITY_LABELS = {
+	low: "Basse",
+	medium: "Moyenne",
+	high: "Haute",
+} as const;
+
 interface Props {
 	task: Task;
 	onClick?: () => void;
@@ -90,7 +96,9 @@ export default function TaskItem({ task, onClick }: Props) {
 	const status = statusConfig[task.status as keyof typeof statusConfig];
 	const StatusIcon = status?.icon;
 
-	const Icon = config.icon;
+	const priorityLabel = PRIORITY_LABELS[task.priority as keyof typeof PRIORITY_LABELS] ?? task.priority;
+
+	const TypeIcon = config.icon;
 
 	const apartment = typeof task.apartmentId === "object" ? task.apartmentId : null;
 
@@ -103,7 +111,7 @@ export default function TaskItem({ task, onClick }: Props) {
 					</div>
 				)}
 				<div className={`min-w-8 h-8 sm:w-11 sm:h-11 rounded-full flex items-center justify-center ${config.bg}`}>
-					<Icon className={`sm:text-3xl ${config.color}`} />
+					<TypeIcon className={`sm:text-3xl ${config.color}`} />
 				</div>
 				<div>
 					<h3 className="font-medium text-white">{task.title}</h3>
@@ -127,7 +135,7 @@ export default function TaskItem({ task, onClick }: Props) {
 			</div>
 
 			<div className="text-right">
-				<div className={`text-xs px-2 py-1 rounded-full inline-block capitalize ${priority.bg} ${priority.text}`}>{task.priority}</div>
+				<div className={`text-xs px-2 py-1 rounded-full inline-block capitalize ${priority.bg} ${priority.text}`}>{priorityLabel}</div>
 
 				<p className="text-sm font-medium mt-2 text-red-200">{formatDate(task.dueDate)}</p>
 			</div>

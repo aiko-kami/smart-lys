@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { FaXmark, FaRegClock, FaLocationDot } from "react-icons/fa6";
+import { FaXmark, FaRegClock } from "react-icons/fa6";
 import { LuBuilding, LuCalendarClock, LuFlame, LuCircleX, LuCircleCheck, LuPlay, LuTimer, LuUser, LuClock3 } from "react-icons/lu";
 import { RemoveButton, EditButton } from "@/components/buttons/Buttons";
 import { formatDate, formatMinutes } from "@/utils";
@@ -85,6 +85,19 @@ const priorityConfig = {
 	},
 } as const;
 
+const STATUS_LABELS: Record<string, string> = {
+	pending: "En attente",
+	"in progress": "En cours",
+	done: "Terminée",
+	cancelled: "Annulée",
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+	low: "Basse",
+	medium: "Moyenne",
+	high: "Haute",
+};
+
 // ─── sub-components ──────────────────────────────────────────────────────────
 
 function MetaRow({ icon, label, children, danger }: { icon: React.ReactNode; label: string; children: React.ReactNode; danger?: boolean }) {
@@ -117,6 +130,12 @@ export default function TaskDetailsModal({ task, onClose, onEdit, onDelete }: Ta
 	const priority = priorityConfig[task?.priority] ?? priorityConfig.medium;
 	const Icon = config.icon;
 
+	const statusKey = task.status?.toLowerCase() ?? "";
+	const priorityKey = task.priority?.toLowerCase() ?? "";
+
+	const statusLabel = STATUS_LABELS[statusKey] ?? task.status;
+	const priorityLabel = PRIORITY_LABELS[priorityKey] ?? task.priority;
+
 	useEffect(() => {
 		const handleEsc = (e: KeyboardEvent) => {
 			if (e.key === "Escape") onClose();
@@ -127,8 +146,6 @@ export default function TaskDetailsModal({ task, onClose, onEdit, onDelete }: Ta
 
 	if (!task) return null;
 
-	const statusKey = task.status?.toLowerCase() ?? "";
-	const priorityKey = task.priority?.toLowerCase() ?? "";
 	const statusStyle = STATUS_STYLES[statusKey] ?? { bg: "bg-gray-800", text: "text-gray-400", icon: null };
 	const priorityStyle = PRIORITY_STYLES[priorityKey] ?? { bg: "bg-gray-800", text: "text-gray-400" };
 	const apartmentName = typeof task.apartmentId === "string" ? null : task.apartmentId?.name;
@@ -137,7 +154,7 @@ export default function TaskDetailsModal({ task, onClose, onEdit, onDelete }: Ta
 
 	return (
 		<Modal open={!!task} onClose={onClose}>
-			<div className="w-full sm:min-w-[600px] sm:max-w-2xl overflow-hidden rounded-2xl">
+			<div className="w-full min-w-[300px] sm:min-w-[600px] sm:max-w-2xl overflow-hidden rounded-2xl">
 				{/* accent bar */}
 				<div className={`h-0.5 w-full ${config["bg-line"]}`} />
 
@@ -146,12 +163,16 @@ export default function TaskDetailsModal({ task, onClose, onEdit, onDelete }: Ta
 					<div className="flex items-center gap-2">
 						{/* icon chip */}
 						<div className="flex flex-col items-center gap-1">
-							<div className={`mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${config.bg}`}>{Icon && <Icon className={`sm:text-3xl ${config.color}`} />}</div>
-							<div className="mt-1 flex flex-wrap items-center gap-2">{task.type && <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-xs text-gray-400 capitalize">{task.type}</span>}</div>
+							<div className={`mt-0.5 flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl ${config.bg}`}>
+								{Icon && <Icon className={`text-lg sm:text-3xl ${config.color}`} />}
+							</div>
+							<div className="mt-1 flex flex-wrap items-center gap-2">
+								{task.type && <span className="hidden sm:inline rounded-full bg-white/5 px-2.5 py-0.5 text-xs text-gray-400 capitalize">{task.type}</span>}
+							</div>
 						</div>
 
 						<div>
-							<h2 className="text-3xl font-semibold leading-snug text-white mb-0.5">{task.title}</h2>
+							<h2 className="text-2xl sm:text-3xl font-semibold leading-snug text-white mb-0.5">{task.title}</h2>
 						</div>
 					</div>
 
@@ -169,13 +190,13 @@ export default function TaskDetailsModal({ task, onClose, onEdit, onDelete }: Ta
 						{task.status && task.status != "N/A" && (
 							<span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusStyle.bg} ${statusStyle.text}`}>
 								{statusStyle.icon}
-								{task.status}
+								{statusLabel}
 							</span>
 						)}
 						{task.priority && task.priority != "N/A" && (
 							<span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${priority.bg} ${priority.text}`}>
 								<LuFlame size={11} />
-								{task.priority}
+								{priorityLabel}
 							</span>
 						)}
 						{task.duration != null && task.duration != 0 && (
