@@ -1,7 +1,6 @@
 "use client";
 
 import TaskItem from "./TaskItem";
-
 import type { Task } from "@/types";
 
 interface Props {

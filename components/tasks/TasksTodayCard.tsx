@@ -1,9 +1,7 @@
 "use client";
 
 import TaskItem from "./TaskItem";
-
 import { formatTodayDate } from "@/utils/format";
-
 import type { Task } from "@/types";
 
 interface Props {

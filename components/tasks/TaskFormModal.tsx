@@ -107,7 +107,7 @@ export default function TaskFormModal({ task, onClose, onSave }: TaskFormModalPr
 
 					{/* Dates */}
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<Field label="Date limite">
+						<Field label="Date limite *">
 							<input required type="date" value={form.dueDate} onChange={(e) => set("dueDate", e.target.value)} className={INPUT_CLASS} />
 						</Field>
 

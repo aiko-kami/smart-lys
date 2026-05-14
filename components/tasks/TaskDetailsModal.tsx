@@ -83,6 +83,10 @@ const priorityConfig = {
 		bg: "bg-red-100",
 		text: "text-red-600",
 	},
+	"N/A": {
+		bg: "",
+		text: "",
+	},
 } as const;
 
 const STATUS_LABELS: Record<string, string> = {

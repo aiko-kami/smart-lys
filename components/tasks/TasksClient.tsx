@@ -113,10 +113,6 @@ export default function TasksClient({ tasks: initial, clients }: { tasks: Task[]
 		}
 	}
 
-	// ─────────────────────────────────────────────
-	// RENDER
-	// ─────────────────────────────────────────────
-
 	return (
 		<div className="space-y-6">
 			{/* HEADER */}

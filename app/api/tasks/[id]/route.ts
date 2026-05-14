@@ -36,13 +36,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 // DELETE TASK
 // ─────────────────────────────────────────────
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	try {
-		const conn = await connectDB();
+		const { id } = await params;
 
+		const conn = await connectDB();
 		const Task = getTaskModel(conn);
 
-		const deleted = await Task.findByIdAndDelete(params.id);
+		const deleted = await Task.findByIdAndDelete(id);
 
 		if (!deleted) {
 			return NextResponse.json({ error: "Task non trouvée" }, { status: 404 });
