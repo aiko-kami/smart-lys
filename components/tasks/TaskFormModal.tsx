@@ -13,6 +13,7 @@ import { INPUT_CLASS } from "@/utils";
 
 export default function TaskFormModal({ task, onClose, onSave, clients = [], apartments = [] }: TaskFormModalProps) {
 	const [saving, setSaving] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	const [form, setForm] = useState({
 		title: task?.title ?? "",
@@ -20,7 +21,7 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 		notes: task?.notes ?? "",
 		type: task?.type ?? "other",
 		status: task?.status ?? "pending",
-		priority: task?.priority ?? "medium",
+		priority: task?.priority ?? "N/A",
 		dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "",
 		startDate: task?.startDate ? new Date(task.startDate).toISOString().split("T")[0] : "",
 		duration: task?.duration ?? 0,
@@ -56,10 +57,23 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 		e.preventDefault();
 
 		setSaving(true);
+		setError?.(null);
 
 		try {
-			await onSave(form);
+			const cleanedForm = {
+				...form,
+				clientId: form.clientId || null,
+				apartmentId: form.apartmentId || null,
+			};
+
+			await onSave(cleanedForm);
+
 			onClose();
+		} catch (err) {
+			console.error("SAVE ERROR:", err);
+
+			// optionnel si tu as un state error
+			setError?.(err instanceof Error ? err.message : "Une erreur est survenue");
 		} finally {
 			setSaving(false);
 		}
@@ -83,6 +97,9 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 					</button>
 				</div>
 
+				{/* ERROR */}
+				{error && <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">{error}</div>}
+
 				{/* FORM */}
 				<form onSubmit={handleSubmit} className="space-y-4">
 					{/* Title */}
@@ -100,8 +117,8 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 						<textarea rows={3} value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Notes complémentaires..." className={`${INPUT_CLASS} resize-none`} />
 					</Field>
 
-					{/* Type + Status */}
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					{/* Type + Status + Duration */}
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 						<Field label="Type">
 							<select value={form.type} onChange={(e) => set("type", e.target.value as Task["type"])} className={INPUT_CLASS}>
 								<option value="cleaning">Nettoyage</option>
@@ -109,32 +126,22 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 								<option value="checkout">Départ voyageurs</option>
 								<option value="maintenance">Maintenance</option>
 								<option value="inspection">Inspection</option>
+								<option value="chloe">Chloé</option>
+								<option value="amy">Amy</option>
+								<option value="adrian">Adrian</option>
 								<option value="other">Autre</option>
 							</select>
 						</Field>
 
 						<Field label="Statut">
 							<select value={form.status} onChange={(e) => set("status", e.target.value as Task["status"])} className={INPUT_CLASS}>
-								<option value="pending">En attente</option>
+								<option value="pending">À faire</option>
 								<option value="in progress">En cours</option>
 								<option value="done">Terminée</option>
 								<option value="cancelled">Annulée</option>
 								<option value="N/A">Non applicable</option>
 							</select>
 						</Field>
-					</div>
-
-					{/* Priority + Duration */}
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<Field label="Priorité">
-							<select value={form.priority} onChange={(e) => set("priority", e.target.value as Task["priority"])} className={INPUT_CLASS}>
-								<option value="low">Basse</option>
-								<option value="medium">Moyenne</option>
-								<option value="high">Haute</option>
-								<option value="N/A">Non applicable</option>
-							</select>
-						</Field>
-
 						<Field label="Durée (minutes)">
 							<input type="number" value={form.duration} onChange={(e) => set("duration", Number(e.target.value))} placeholder="90" className={INPUT_CLASS} />
 						</Field>

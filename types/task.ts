@@ -1,4 +1,4 @@
-export type TaskType = "cleaning" | "checkin" | "checkout" | "maintenance" | "inspection" | "other";
+export type TaskType = "cleaning" | "checkin" | "checkout" | "maintenance" | "inspection" | "chloe" | "amy" | "adrian" | "other";
 
 export type TaskStatus = "pending" | "in_progress" | "done" | "cancelled" | "N/A";
 
@@ -20,8 +20,8 @@ export interface Task {
 	title: string;
 	description?: string;
 	type: TaskType;
-	apartmentId?: string | TaskApartment;
-	clientId?: string | TaskClient;
+	apartmentId?: string | TaskApartment | null;
+	clientId?: string | TaskClient | null;
 	dueDate: string;
 	startDate?: string;
 	duration?: number;

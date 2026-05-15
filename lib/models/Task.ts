@@ -4,14 +4,14 @@ const TaskSchema = new Schema(
 	{
 		title: { type: String, required: true, trim: true },
 		description: { type: String, default: "" },
-		type: { type: String, enum: ["cleaning", "checkin", "checkout", "maintenance", "inspection", "other"], default: "other" },
+		type: { type: String, enum: ["cleaning", "checkin", "checkout", "maintenance", "inspection", "chloe", "amy", "adrian", "other"], default: "other" },
 		apartmentId: { type: Schema.Types.ObjectId, ref: "Apartment", required: false },
-		clientId: { type: Schema.Types.ObjectId, ref: "Client" },
+		clientId: { type: Schema.Types.ObjectId, ref: "Client", required: false },
 		dueDate: { type: Date, required: true },
 		startDate: { type: Date },
 		duration: { type: Number },
 		status: { type: String, enum: ["pending", "in progress", "done", "cancelled", "N/A"], default: "pending" },
-		priority: { type: String, enum: ["low", "medium", "high", "N/A"], default: "medium" },
+		priority: { type: String, enum: ["low", "medium", "high", "N/A"], default: "N/A" },
 		notes: { type: String, default: "" },
 	},
 	{
@@ -20,5 +20,5 @@ const TaskSchema = new Schema(
 );
 
 export function getTaskModel(conn: mongoose.Connection) {
-	return conn.models.Task || conn.model("Task", TaskSchema, "tasks");
+	return conn.models.Task ?? conn.model("Task", TaskSchema, "tasks");
 }

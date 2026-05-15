@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { FaXmark, FaRegClock } from "react-icons/fa6";
-import { LuBuilding, LuCalendarClock, LuFlame, LuCircleX, LuCircleCheck, LuPlay, LuTimer, LuUser, LuClock3 } from "react-icons/lu";
+import { LuBuilding, LuCalendarClock, LuFlame, LuCircleX, LuCircleCheck, LuPlay, LuTimer, LuUser, LuClock3, LuUserRound } from "react-icons/lu";
 import { RemoveButton, EditButton } from "@/components/buttons/Buttons";
 import { formatDate, formatMinutes } from "@/utils";
 
@@ -62,6 +62,24 @@ const taskTypeConfig = {
 		color: "text-purple-600",
 		"bg-line": "bg-gradient-to-r from-purple-500 to-indigo-500",
 	},
+	chloe: {
+		icon: LuUserRound,
+		bg: "bg-amber-100",
+		color: "text-amber-600",
+		"bg-line": "bg-gradient-to-r from-amber-500 to-yellow-200",
+	},
+	amy: {
+		icon: LuUserRound,
+		bg: "bg-amber-100",
+		color: "text-amber-600",
+		"bg-line": "bg-gradient-to-r from-amber-500 to-yellow-200",
+	},
+	adrian: {
+		icon: LuUserRound,
+		bg: "bg-amber-100",
+		color: "text-amber-600",
+		"bg-line": "bg-gradient-to-r from-amber-500 to-yellow-200",
+	},
 	other: {
 		icon: LiaExpandSolid,
 		bg: "bg-gray-200",
@@ -90,7 +108,7 @@ const priorityConfig = {
 } as const;
 
 const STATUS_LABELS: Record<string, string> = {
-	pending: "En attente",
+	pending: "À faire",
 	"in progress": "En cours",
 	done: "Terminée",
 	cancelled: "Annulée",

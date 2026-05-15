@@ -10,26 +10,58 @@ import { getTaskModel } from "@/lib/models";
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 
-	const body = await req.json();
-	const conn = await connectDB();
-	const Task = getTaskModel(conn);
+	try {
+		const body = await req.json();
 
-	console.log("UPDATE TASK ID:", id);
+		const conn = await connectDB();
+		const Task = getTaskModel(conn);
 
-	const before = await Task.findById(id);
+		const before = await Task.findById(id);
 
-	if (!before) {
-		return NextResponse.json({ error: "Task non trouvée (avant update)" }, { status: 404 });
+		if (!before) {
+			return NextResponse.json({ error: "Task non trouvée (avant update)" }, { status: 404 });
+		}
+
+		const update: any = { ...body };
+		const unset: Record<string, 1> = {};
+
+		// clientId
+		if (!update.clientId) {
+			unset.clientId = 1;
+			delete update.clientId;
+		}
+
+		// apartmentId
+		if (!update.apartmentId) {
+			unset.apartmentId = 1;
+			delete update.apartmentId;
+		}
+
+		// si on a des champs à unset → on les ajoute
+		if (Object.keys(unset).length > 0) {
+			update.$unset = unset;
+		}
+
+		const updated = await Task.findByIdAndUpdate(id, update, {
+			new: true,
+			runValidators: true,
+		})
+			.populate("apartmentId", "name")
+			.populate("clientId", "name")
+			.lean();
+
+		return NextResponse.json(updated);
+	} catch (err) {
+		console.error("TASK_UPDATE_ERROR", err);
+
+		return NextResponse.json(
+			{
+				error: "Erreur update task",
+				details: err instanceof Error ? err.message : err,
+			},
+			{ status: 500 },
+		);
 	}
-
-	const updated = await Task.findByIdAndUpdate(id, body, {
-		new: true,
-	})
-		.populate("apartmentId", "name")
-		.populate("clientId", "name")
-		.lean();
-
-	return NextResponse.json(updated);
 }
 
 // ─────────────────────────────────────────────

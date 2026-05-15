@@ -1,7 +1,7 @@
 "use client";
 
 import { FaRegClock, FaLocationDot } from "react-icons/fa6";
-import { LuCircleCheck, LuCircleX, LuTimer, LuClock3 } from "react-icons/lu";
+import { LuCircleCheck, LuCircleX, LuTimer, LuClock3, LuUserRound } from "react-icons/lu";
 import { LiaBroomSolid, LiaToolsSolid, LiaSignInAltSolid, LiaSignOutAltSolid, LiaClipboardCheckSolid, LiaExpandSolid } from "react-icons/lia";
 
 import type { Task } from "@/types";
@@ -38,6 +38,25 @@ const taskTypeConfig = {
 		color: "text-purple-600",
 		label: "Inspection",
 	},
+	chloe: {
+		icon: LuUserRound,
+		bg: "bg-amber-100",
+		color: "text-amber-600",
+		label: "Chloé",
+	},
+
+	amy: {
+		icon: LuUserRound,
+		bg: "bg-purple-100",
+		color: "text-purple-600",
+		label: "Amy",
+	},
+	adrian: {
+		icon: LuUserRound,
+		bg: "bg-purple-100",
+		color: "text-purple-600",
+		label: "Adrian",
+	},
 	other: {
 		icon: LiaExpandSolid,
 		bg: "bg-gray-200",
@@ -69,7 +88,7 @@ const statusConfig = {
 	pending: {
 		icon: LuTimer,
 		color: "text-amber-400",
-		label: "Tâche en attente",
+		label: "Tâche à faire",
 	},
 	"in progress": {
 		icon: LuClock3,

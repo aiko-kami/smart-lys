@@ -54,7 +54,6 @@ export default function TasksClient({ tasks: initial, clients, apartments }: { t
 			const url = isEditing ? `/api/tasks/${editingTask!._id}` : "/api/tasks";
 
 			const method = isEditing ? "PUT" : "POST";
-			console.log("EDITING TASK ID:", editingTask?._id);
 			const res = await fetch(url, {
 				method,
 				headers: {
