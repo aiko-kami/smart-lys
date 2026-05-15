@@ -15,10 +15,11 @@ const TaskSchema = new Schema(
 		notes: { type: String, default: "" },
 	},
 	{
+		collection: "tasks",
 		timestamps: true,
 	},
 );
 
 export function getTaskModel(conn: mongoose.Connection) {
-	return conn.models.Task ?? conn.model("Task", TaskSchema, "tasks");
+	return conn.models.Task || conn.model("Task", TaskSchema);
 }

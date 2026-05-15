@@ -89,8 +89,8 @@ export const taskTypeConfig = {
 
 export const priorityConfig = {
 	low: {
-		bg: "bg-green-100",
-		text: "text-green-600",
+		bg: "bg-emerald-100",
+		text: "text-emerald-600",
 		label: "Basse",
 	},
 
@@ -101,8 +101,8 @@ export const priorityConfig = {
 	},
 
 	high: {
-		bg: "bg-red-100",
-		text: "text-red-600",
+		bg: "bg-rose-100",
+		text: "text-rose-600",
 		label: "Haute",
 	},
 
@@ -116,24 +116,24 @@ export const priorityConfig = {
 export const statusConfig = {
 	pending: {
 		icon: LuTimer,
-		color: "text-amber-400",
-		bg: "bg-amber-50",
+		color: "text-amber-600",
+		bg: "bg-amber-100",
 		label: "Tâche à faire",
 		labelShort: "À faire",
 	},
 
 	"in progress": {
 		icon: LuRefreshCw,
-		color: "text-teal-500",
-		bg: "bg-teal-50",
+		color: "text-teal-600",
+		bg: "bg-teal-100",
 		label: "Tâche en cours",
 		labelShort: "En cours",
 	},
 
 	done: {
 		icon: LuCircleCheck,
-		color: "text-green-500",
-		bg: "bg-green-50",
+		color: "text-green-600",
+		bg: "bg-green-100",
 		label: "Tâche terminée",
 		labelShort: "Terminée",
 	},
@@ -141,7 +141,7 @@ export const statusConfig = {
 	cancelled: {
 		icon: LuCircleX,
 		color: "text-red-600",
-		bg: "bg-red-50",
+		bg: "bg-red-100",
 		label: "Tâche annulée",
 		labelShort: "Annulée",
 	},

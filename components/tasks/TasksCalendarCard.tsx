@@ -2,64 +2,8 @@
 
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-
 import type { Task } from "@/types";
 import { taskTypeConfig } from "@/utils/taskConfig";
-
-type Event = {
-	id: string;
-	type: "cleaning" | "checkin" | "checkout";
-	start: string;
-	end: string;
-};
-
-const events: Event[] = [
-	{
-		id: "1",
-		type: "checkin",
-		start: "2026-05-11T10:00:00",
-		end: "2026-05-12T14:00:00",
-	},
-];
-
-function normalize(date: Date) {
-	const d = new Date(date);
-	d.setHours(0, 0, 0, 0);
-	return d.getTime();
-}
-
-function isInRange(date: Date, event: Event) {
-	const d = normalize(date);
-	const start = normalize(new Date(event.start));
-	const end = normalize(new Date(event.end));
-
-	return d >= start && d <= end;
-}
-
-function getDayProgress(date: Date, event: Event) {
-	const dayStart = new Date(date);
-	dayStart.setHours(0, 0, 0, 0);
-
-	const dayEnd = new Date(date);
-	dayEnd.setHours(23, 59, 59, 999);
-
-	const eventStart = new Date(event.start);
-	const eventEnd = new Date(event.end);
-
-	const start = Math.max(eventStart.getTime(), dayStart.getTime());
-	const end = Math.min(eventEnd.getTime(), dayEnd.getTime());
-
-	if (end <= start) return null;
-
-	const total = dayEnd.getTime() - dayStart.getTime();
-	const relativeStart = start - dayStart.getTime();
-	const relativeEnd = end - dayStart.getTime();
-
-	return {
-		left: (relativeStart / total) * 100,
-		width: ((relativeEnd - relativeStart) / total) * 100,
-	};
-}
 
 interface Props {
 	tasks: Task[];
@@ -73,7 +17,6 @@ export default function TasksCalendarCard({ tasks = [] }: Props) {
 		});
 	}
 
-	// ✅ dynamique (plus de hardcode)
 	const counts = Object.keys(taskTypeConfig).reduce(
 		(acc, type) => {
 			acc[type] = tasks.filter((t) => t.type === type).length;
@@ -114,8 +57,6 @@ export default function TasksCalendarCard({ tasks = [] }: Props) {
 			{/* LEGEND DYNAMIQUE */}
 			<div className="mt-6 space-y-3 text-sm">
 				{Object.entries(taskTypeConfig).map(([type, config]) => {
-					console.log("🚀 ~ TasksCalendarCard ~ config:", config);
-
 					const count = counts[type] ?? 0;
 
 					if (count === 0) return null;
