@@ -1,117 +1,11 @@
 "use client";
 
 import { FaRegClock, FaLocationDot } from "react-icons/fa6";
-import { LuCircleCheck, LuCircleX, LuTimer, LuClock3, LuUserRound } from "react-icons/lu";
-import { LiaBroomSolid, LiaToolsSolid, LiaSignInAltSolid, LiaSignOutAltSolid, LiaClipboardCheckSolid, LiaExpandSolid } from "react-icons/lia";
 
 import type { Task } from "@/types";
 import { formatDate, formatMinutes } from "@/utils";
+import { taskTypeConfig, priorityConfig, statusConfig } from "@/utils/taskConfig";
 
-const taskTypeConfig = {
-	cleaning: {
-		icon: LiaBroomSolid,
-		bg: "bg-blue-100",
-		color: "text-blue-600",
-		label: "Nettoyage",
-	},
-	checkin: {
-		icon: LiaSignInAltSolid,
-		bg: "bg-green-100",
-		color: "text-green-600",
-		label: "Accueil voyageurs",
-	},
-	checkout: {
-		icon: LiaSignOutAltSolid,
-		bg: "bg-orange-100",
-		color: "text-orange-600",
-		label: "Départ voyageurs",
-	},
-	maintenance: {
-		icon: LiaToolsSolid,
-		bg: "bg-red-100",
-		color: "text-red-600",
-		label: "Maintenance",
-	},
-	inspection: {
-		icon: LiaClipboardCheckSolid,
-		bg: "bg-purple-100",
-		color: "text-purple-600",
-		label: "Inspection",
-	},
-	chloe: {
-		icon: LuUserRound,
-		bg: "bg-amber-100",
-		color: "text-amber-600",
-		label: "Chloé",
-	},
-
-	amy: {
-		icon: LuUserRound,
-		bg: "bg-purple-100",
-		color: "text-purple-600",
-		label: "Amy",
-	},
-	adrian: {
-		icon: LuUserRound,
-		bg: "bg-purple-100",
-		color: "text-purple-600",
-		label: "Adrian",
-	},
-	other: {
-		icon: LiaExpandSolid,
-		bg: "bg-gray-200",
-		color: "text-gray-600",
-		label: "Autre",
-	},
-} as const;
-
-const priorityConfig = {
-	low: {
-		bg: "bg-green-100",
-		text: "text-green-600",
-	},
-	medium: {
-		bg: "bg-orange-100",
-		text: "text-orange-600",
-	},
-	high: {
-		bg: "bg-red-100",
-		text: "text-red-600",
-	},
-	"N/A": {
-		bg: "",
-		text: "",
-	},
-} as const;
-
-const statusConfig = {
-	pending: {
-		icon: LuTimer,
-		color: "text-amber-400",
-		label: "Tâche à faire",
-	},
-	"in progress": {
-		icon: LuClock3,
-		color: "text-teal-500",
-		label: "Tâche en cours",
-	},
-	done: {
-		icon: LuCircleCheck,
-		color: "text-green-500",
-		label: "Tâche terminée",
-	},
-	cancelled: {
-		icon: LuCircleX,
-		color: "text-red-600",
-		label: "Tâche annulée",
-	},
-} as const;
-
-const PRIORITY_LABELS = {
-	low: "Basse",
-	medium: "Moyenne",
-	high: "Haute",
-} as const;
 interface Props {
 	task: Task;
 	onClick?: () => void;
@@ -124,7 +18,7 @@ export default function TaskItem({ task, onClick }: Props) {
 	const status = statusConfig[task.status as keyof typeof statusConfig];
 	const StatusIcon = status?.icon;
 
-	const priorityLabel = PRIORITY_LABELS[task.priority as keyof typeof PRIORITY_LABELS] ?? task.priority;
+	const priorityLabel = priorityConfig[task.priority]?.label ?? task.priority;
 
 	const TypeIcon = config.icon;
 

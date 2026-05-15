@@ -3,11 +3,14 @@
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
+import type { Task } from "@/types";
+import { taskTypeConfig } from "@/utils/taskConfig";
+
 type Event = {
 	id: string;
 	type: "cleaning" | "checkin" | "checkout";
-	start: string; // ISO datetime
-	end: string; // ISO datetime
+	start: string;
+	end: string;
 };
 
 const events: Event[] = [
@@ -15,7 +18,7 @@ const events: Event[] = [
 		id: "1",
 		type: "checkin",
 		start: "2026-05-11T10:00:00",
-		end: "2026-05-12T14:00:00", // ends mid-day
+		end: "2026-05-12T14:00:00",
 	},
 ];
 
@@ -25,8 +28,12 @@ function normalize(date: Date) {
 	return d.getTime();
 }
 
-function isSameDay(a: Date, b: Date) {
-	return a.toDateString() === b.toDateString();
+function isInRange(date: Date, event: Event) {
+	const d = normalize(date);
+	const start = normalize(new Date(event.start));
+	const end = normalize(new Date(event.end));
+
+	return d >= start && d <= end;
 }
 
 function getDayProgress(date: Date, event: Event) {
@@ -54,64 +61,26 @@ function getDayProgress(date: Date, event: Event) {
 	};
 }
 
-function isInRange(date: Date, event: Event) {
-	const d = normalize(date);
-	const start = normalize(new Date(event.start));
-	const end = normalize(new Date(event.end));
-
-	return d >= start && d <= end;
+interface Props {
+	tasks: Task[];
 }
 
-function getRangePosition(date: Date, event: Event) {
-	const d = normalize(date);
-	const start = normalize(new Date(event.start));
-	const end = normalize(new Date(event.end));
-
-	if (d === start) return "start";
-	if (d === end) return "end";
-	return "middle";
-}
-
-type TaskType = "cleaning" | "checkin" | "checkout" | "maintenance";
-
-const tasks: { date: string; type: TaskType }[] = [
-	{
-		date: "2026-05-10",
-		type: "cleaning",
-	},
-	{
-		date: "2026-05-10",
-		type: "cleaning",
-	},
-	{
-		date: "2026-05-10",
-		type: "cleaning",
-	},
-	{
-		date: "2026-05-12",
-		type: "checkin",
-	},
-	{
-		date: "2026-05-10",
-		type: "maintenance",
-	},
-	{
-		date: "2026-05-12",
-		type: "checkout",
-	},
-];
-
-const taskTypeColors: Record<TaskType, string> = {
-	cleaning: "bg-blue-500",
-	checkin: "bg-green-500",
-	checkout: "bg-orange-500",
-	maintenance: "bg-red-500",
-};
-
-export default function TasksCalendarCard() {
+export default function TasksCalendarCard({ tasks = [] }: Props) {
 	function getTasksForDay(date: Date) {
-		return tasks.filter((task) => new Date(task.date).toDateString() === date.toDateString());
+		return tasks.filter((task) => {
+			if (!task.dueDate) return false;
+			return new Date(task.dueDate).toDateString() === date.toDateString();
+		});
 	}
+
+	// ✅ dynamique (plus de hardcode)
+	const counts = Object.keys(taskTypeConfig).reduce(
+		(acc, type) => {
+			acc[type] = tasks.filter((t) => t.type === type).length;
+			return acc;
+		},
+		{} as Record<string, number>,
+	);
 
 	return (
 		<div className="rounded-2xl border border-white/10 bg-[#111827] shadow-sm p-5">
@@ -120,47 +89,6 @@ export default function TasksCalendarCard() {
 			<div className="grid gap-6 justify-center">
 				<DayPicker
 					mode="single"
-					components={{
-						DayButton: ({ day, children, ...props }) => {
-							const activeEvents = events.filter((e) => isInRange(day.date, e));
-
-							return (
-								<button {...props} className="relative h-10 w-10 text-white">
-									{/* Background bar */}
-									{activeEvents.length > 0 && (
-										<div className="absolute inset-0">
-											{activeEvents.map((event) => {
-												const progress = getDayProgress(day.date, event);
-												if (!progress) return null;
-
-												return (
-													<div
-														key={event.id}
-														className={`absolute top-1/2 h-2 -translate-y-1/2 rounded-full ${
-															event.type === "cleaning" ? "bg-blue-500/30" : event.type === "checkin" ? "bg-green-500/30" : "bg-orange-500/30"
-														}`}
-														style={{
-															left: `${progress.left}%`,
-															width: `${progress.width}%`,
-														}}
-													/>
-												);
-											})}
-										</div>
-									)}
-
-									{/* Day number */}
-									<span className="relative z-10">{children}</span>
-								</button>
-							);
-						},
-					}}
-				/>
-				<DayPicker
-					mode="single"
-					classNames={{
-						day_today: "text-emerald-400 font-bold",
-					}}
 					components={{
 						DayButton: ({ day, children, ...props }) => {
 							const dayTasks = getTasksForDay(day.date);
@@ -172,7 +100,7 @@ export default function TasksCalendarCard() {
 									{dayTasks.length > 0 && (
 										<div className="absolute bottom-1 left-[21px] flex -translate-x-1/2 gap-0.5">
 											{dayTasks.slice(0, 3).map((task, index) => (
-												<div key={index} className={`h-1.5 w-1.5 rounded-full ${taskTypeColors[task.type]}`} />
+												<div key={index} className={`h-1.5 w-1.5 rounded-full ${taskTypeConfig[task.type].dot}`} />
 											))}
 										</div>
 									)}
@@ -183,42 +111,26 @@ export default function TasksCalendarCard() {
 				/>
 			</div>
 
+			{/* LEGEND DYNAMIQUE */}
 			<div className="mt-6 space-y-3 text-sm">
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2">
-						<div className="w-2 h-2 rounded-full bg-blue-500" />
-						Ménage
-					</div>
+				{Object.entries(taskTypeConfig).map(([type, config]) => {
+					console.log("🚀 ~ TasksCalendarCard ~ config:", config);
 
-					<span>12</span>
-				</div>
+					const count = counts[type] ?? 0;
 
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2">
-						<div className="w-2 h-2 rounded-full bg-green-500" />
-						Check-in
-					</div>
+					if (count === 0) return null;
 
-					<span>8</span>
-				</div>
+					return (
+						<div key={type} className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<div className={`w-2 h-2 rounded-full ${config.dot}`} />
+								<span>{config.label}</span>
+							</div>
 
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2">
-						<div className="w-2 h-2 rounded-full bg-orange-500" />
-						Check-out
-					</div>
-
-					<span>5</span>
-				</div>
-
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2">
-						<div className="w-2 h-2 rounded-full bg-red-500" />
-						Maintenance
-					</div>
-
-					<span>2</span>
-				</div>
+							<span>{count}</span>
+						</div>
+					);
+				})}
 			</div>
 		</div>
 	);

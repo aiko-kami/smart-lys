@@ -139,7 +139,7 @@ export default function TasksClient({ tasks: initial, clients, apartments }: { t
 
 				{/* RIGHT */}
 				<div>
-					<TasksCalendarCard />
+					<TasksCalendarCard tasks={tasks} />
 				</div>
 			</div>
 
