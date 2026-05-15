@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
-import { getTaskModel } from "@/lib/models";
+import { registerModels, getTaskModel } from "@/lib/models";
 
 // ─────────────────────────────────────────────
 // UPDATE TASK
@@ -14,6 +14,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 		const body = await req.json();
 
 		const conn = await connectDB();
+		registerModels(conn);
+
 		const Task = getTaskModel(conn);
 
 		const before = await Task.findById(id);
@@ -73,6 +75,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 		const { id } = await params;
 
 		const conn = await connectDB();
+		registerModels(conn);
+
 		const Task = getTaskModel(conn);
 
 		const deleted = await Task.findByIdAndDelete(id);

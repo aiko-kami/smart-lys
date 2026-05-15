@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
-import { getTaskModel, getApartmentModel, getClientModel } from "@/lib/models";
+import { registerModels, getTaskModel, getApartmentModel, getClientModel } from "@/lib/models";
 
 // ─────────────────────────────────────────────
 // GET all tasks
@@ -9,7 +9,7 @@ import { getTaskModel, getApartmentModel, getClientModel } from "@/lib/models";
 
 export async function GET() {
 	const conn = await connectDB();
-
+	registerModels(conn);
 	const Task = getTaskModel(conn);
 
 	// optionnel: si tu veux populate relations
@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
 	try {
 		const body = await req.json();
 		const conn = await connectDB();
+		registerModels(conn);
 
 		const Task = getTaskModel(conn);
 
