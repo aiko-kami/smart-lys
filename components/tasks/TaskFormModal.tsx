@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaXmark } from "react-icons/fa6";
 
 import Modal from "@/components/ui/Modal";
@@ -11,20 +11,39 @@ import type { TaskFormModalProps } from "@/types/modal";
 
 import { INPUT_CLASS } from "@/utils";
 
-export default function TaskFormModal({ task, onClose, onSave }: TaskFormModalProps) {
+export default function TaskFormModal({ task, onClose, onSave, clients = [], apartments = [] }: TaskFormModalProps) {
 	const [saving, setSaving] = useState(false);
 
 	const [form, setForm] = useState({
 		title: task?.title ?? "",
 		description: task?.description ?? "",
+		notes: task?.notes ?? "",
 		type: task?.type ?? "other",
 		status: task?.status ?? "pending",
 		priority: task?.priority ?? "medium",
 		dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "",
 		startDate: task?.startDate ? new Date(task.startDate).toISOString().split("T")[0] : "",
 		duration: task?.duration ?? 0,
-		notes: task?.notes ?? "",
+		clientId: typeof task?.clientId === "object" ? task.clientId?._id : (task?.clientId ?? ""),
+		apartmentId: typeof task?.apartmentId === "object" ? task.apartmentId?._id : (task?.apartmentId ?? ""),
 	});
+
+	useEffect(() => {
+		if (!form.clientId) return;
+
+		const filtered = apartments.filter((apartment) => {
+			const clientId = typeof apartment.clientId === "object" ? apartment.clientId?._id : apartment.clientId;
+
+			return clientId === form.clientId;
+		});
+
+		if (filtered.length === 0) return;
+
+		setForm((prev) => ({
+			...prev,
+			apartmentId: filtered[0]._id,
+		}));
+	}, [form.clientId, apartments, task]);
 
 	function set<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
 		setForm((prev) => ({
@@ -46,6 +65,12 @@ export default function TaskFormModal({ task, onClose, onSave }: TaskFormModalPr
 		}
 	}
 
+	const filteredApartments = (apartments ?? []).filter((apartment) => {
+		const clientId = typeof apartment.clientId === "object" ? apartment.clientId?._id : apartment.clientId;
+
+		return clientId === form.clientId;
+	});
+
 	return (
 		<Modal open={true} onClose={onClose} closeOnBackdrop={false}>
 			<div className="w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F172A] p-6 sm:min-w-2xl">
@@ -63,6 +88,16 @@ export default function TaskFormModal({ task, onClose, onSave }: TaskFormModalPr
 					{/* Title */}
 					<Field label="Titre *">
 						<input required type="text" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Nettoyage appartement" className={INPUT_CLASS} />
+					</Field>
+
+					{/* Description */}
+					<Field label="Description">
+						<textarea rows={3} value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Description de la tâche..." className={`${INPUT_CLASS} resize-none`} />
+					</Field>
+
+					{/* Notes */}
+					<Field label="Notes">
+						<textarea rows={3} value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Notes complémentaires..." className={`${INPUT_CLASS} resize-none`} />
 					</Field>
 
 					{/* Type + Status */}
@@ -116,18 +151,42 @@ export default function TaskFormModal({ task, onClose, onSave }: TaskFormModalPr
 						</Field>
 					</div>
 
-					{/* Description */}
-					<Field label="Description">
-						<textarea rows={3} value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Description de la tâche..." className={`${INPUT_CLASS} resize-none`} />
-					</Field>
+					{/* Client + Appartement */}
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<Field label="Client">
+							<select
+								value={form.clientId}
+								onChange={(e) => {
+									set("clientId", e.target.value);
+									set("apartmentId", "");
+								}}
+								className={INPUT_CLASS}
+							>
+								<option value="">Sélectionner un client</option>
 
-					{/* Notes */}
-					<Field label="Notes">
-						<textarea rows={3} value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Notes complémentaires..." className={`${INPUT_CLASS} resize-none`} />
-					</Field>
+								{clients.map((client) => (
+									<option key={client._id} value={client._id}>
+										{client.name}
+									</option>
+								))}
+							</select>
+						</Field>
+
+						<Field label="Appartement">
+							<select value={form.apartmentId} onChange={(e) => set("apartmentId", e.target.value)} className={INPUT_CLASS} disabled={!form.clientId}>
+								<option value="">Sélectionner un appartement</option>
+
+								{filteredApartments.map((apartment) => (
+									<option key={apartment._id} value={apartment._id}>
+										{apartment.name}
+									</option>
+								))}
+							</select>
+						</Field>
+					</div>
 
 					{/* ACTIONS */}
-					<div className="flex gap-3 pt-2">
+					<div className="flex gap-3 pt-6">
 						<button type="button" onClick={onClose} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm text-gray-300 transition hover:bg-white/10">
 							Annuler
 						</button>

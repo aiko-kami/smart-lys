@@ -75,4 +75,6 @@ export interface TaskFormModalProps {
 	task: Task | null;
 	onClose: () => void;
 	onSave: (data: Partial<Task>) => Promise<void>;
+	clients: Client[];
+	apartments: Apartment[];
 }

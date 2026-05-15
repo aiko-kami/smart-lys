@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
 import TasksClient from "@/components/tasks/TasksClient";
-import { registerModels, getTaskModel, getClientModel } from "@/lib/models";
+import { registerModels, getTaskModel, getClientModel, getApartmentModel } from "@/lib/models";
 
 async function getTasks() {
 	const conn = await connectDB();
@@ -26,8 +26,20 @@ async function getClients() {
 	return JSON.parse(JSON.stringify(clients));
 }
 
-export default async function TasksPage() {
-	const [tasks, clients] = await Promise.all([getTasks(), getClients()]);
+async function getApartments() {
+	const conn = await connectDB();
 
-	return <TasksClient tasks={tasks} clients={clients} />;
+	registerModels(conn);
+
+	const Apartment = getApartmentModel(conn);
+
+	const apartments = await Apartment.find().sort({ name: 1 }).lean();
+
+	return JSON.parse(JSON.stringify(apartments));
+}
+
+export default async function TasksPage() {
+	const [tasks, clients, apartments] = await Promise.all([getTasks(), getClients(), getApartments()]);
+
+	return <TasksClient tasks={tasks} clients={clients} apartments={apartments} />;
 }

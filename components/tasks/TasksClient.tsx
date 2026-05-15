@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import type { Task, Client } from "@/types";
+import type { Task, Client, Apartment } from "@/types";
 
 import { splitTasks } from "@/utils/taskUtils";
 
@@ -14,7 +14,7 @@ import TasksCalendarCard from "@/components/tasks/TasksCalendarCard";
 import TaskDetailsModal from "@/components/tasks/TaskDetailsModal";
 import TaskFormModal from "@/components/tasks/TaskFormModal";
 
-export default function TasksClient({ tasks: initial, clients }: { tasks: Task[]; clients: Client[] }) {
+export default function TasksClient({ tasks: initial, clients, apartments }: { tasks: Task[]; clients: Client[]; apartments: Apartment[] }) {
 	const [tasks, setTasks] = useState(initial);
 	const [allClients] = useState<Client[]>(clients);
 	const [search, setSearch] = useState("");
@@ -63,7 +63,6 @@ export default function TasksClient({ tasks: initial, clients }: { tasks: Task[]
 				body: JSON.stringify(data),
 			});
 
-			// 🔴 debug important
 			if (!res.ok) {
 				const errorText = await res.text();
 				console.error("API ERROR:", errorText);
@@ -157,6 +156,8 @@ export default function TasksClient({ tasks: initial, clients }: { tasks: Task[]
 						setCreating(false);
 					}}
 					onSave={handleSave}
+					clients={clients}
+					apartments={apartments}
 				/>
 			)}
 
