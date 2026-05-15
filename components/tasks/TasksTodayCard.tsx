@@ -1,8 +1,8 @@
 "use client";
 
 import TaskItem from "./TaskItem";
-import { formatTodayDate } from "@/utils/format";
 import type { Task } from "@/types";
+import { formatTodayDate } from "@/utils/format";
 
 interface Props {
 	tasks: Task[];
@@ -18,6 +18,11 @@ export default function TasksTodayCard({ tasks, onTaskClick }: Props) {
 					<h2 className="text-xl font-semibold">Tâches du jour</h2>
 
 					<p className="mt-1 pl-1 text-sm font-semibold text-purple-200 text-muted-foreground">{formatTodayDate()}</p>
+				</div>
+
+				{/* COUNT */}
+				<div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm font-medium text-gray-300">
+					{tasks.length} tâche{tasks.length > 1 ? "s" : ""}
 				</div>
 			</div>
 

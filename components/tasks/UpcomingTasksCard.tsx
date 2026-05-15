@@ -16,6 +16,11 @@ export default function UpcomingTasksCard({ tasks, onTaskClick }: Props) {
 				<div>
 					<h2 className="text-xl font-semibold">Tâches à venir</h2>
 				</div>
+
+				{/* COUNT */}
+				<div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm font-medium text-gray-300">
+					{tasks.length} tâche{tasks.length > 1 ? "s" : ""}
+				</div>
 			</div>
 
 			{/* EMPTY */}
