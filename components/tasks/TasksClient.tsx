@@ -1,11 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-
+import toast from "react-hot-toast";
 import type { Task, Client, Apartment } from "@/types";
-
 import { splitTasks } from "@/utils/taskUtils";
-
 import TasksTodayCard from "@/components/tasks/TasksTodayCard";
 import UpcomingTasksCard from "@/components/tasks/UpcomingTasksCard";
 import OtherTasksCard from "@/components/tasks/OtherTasksCard";
@@ -63,8 +61,6 @@ export default function TasksClient({ tasks: initial, clients, apartments }: { t
 			});
 
 			if (!res.ok) {
-				const errorText = await res.text();
-				console.error("API ERROR:", errorText);
 				throw new Error(isEditing ? "Erreur lors de la modification" : "Erreur lors de la création");
 			}
 
@@ -72,16 +68,18 @@ export default function TasksClient({ tasks: initial, clients, apartments }: { t
 
 			// ── update state (same pattern apartments)
 			if (isEditing) {
+				toast.success("Tâche mise à jour");
 				setTasks((prev) => prev.map((t) => (t._id === savedTask._id ? savedTask : t)));
 			} else {
+				toast.success("Tâche créée");
 				setTasks((prev) => [savedTask, ...prev]);
 			}
 
 			setEditingTask(null);
 			setCreating(false);
-		} catch (err) {
-			console.error(err);
-			setError(err instanceof Error ? err.message : "Une erreur est survenue");
+		} catch (e) {
+			setError(e instanceof Error ? e.message : "Une erreur est survenue");
+			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		}
 	}
 	async function handleDeleteConfirm() {
@@ -98,14 +96,13 @@ export default function TasksClient({ tasks: initial, clients, apartments }: { t
 			if (!res.ok) {
 				throw new Error("Erreur lors de la suppression");
 			}
-
+			toast.success("Tâche suprimée");
 			setTasks((prev) => prev.filter((task) => task._id !== deleteModal._id));
 
 			setDeleteModal(null);
-		} catch (err) {
-			console.error(err);
-
-			setError(err instanceof Error ? err.message : "Une erreur est survenue");
+		} catch (e) {
+			setError(e instanceof Error ? e.message : "Une erreur est survenue");
+			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		} finally {
 			setDeleting(false);
 		}
@@ -179,8 +176,6 @@ export default function TasksClient({ tasks: initial, clients, apartments }: { t
 								{deleting ? "Suppression..." : "Supprimer"}
 							</button>
 						</div>
-
-						{error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 					</div>
 				</div>
 			)}

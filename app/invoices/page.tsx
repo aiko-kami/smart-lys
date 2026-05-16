@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
 import InvoicesClient from "@/components/invoices/InvoicesClient";
-import { registerModels, getInvoiceModel, getClientModel } from "@/lib/models";
+import { registerModels, getInvoiceModel, getClientModel, getPaymentModel } from "@/lib/models";
 
 async function getInvoices() {
 	const conn = await connectDB();
@@ -26,8 +26,20 @@ async function getClients() {
 	return JSON.parse(JSON.stringify(clients));
 }
 
-export default async function InvoicesPage() {
-	const [invoices, clients] = await Promise.all([getInvoices(), getClients()]);
+async function getPayment() {
+	const conn = await connectDB();
 
-	return <InvoicesClient invoices={invoices} clients={clients} />;
+	registerModels(conn);
+
+	const Payment = getPaymentModel(conn);
+
+	const payment = await Payment.findOne().lean();
+
+	return JSON.parse(JSON.stringify(payment));
+}
+
+export default async function InvoicesPage() {
+	const [invoices, clients, payment] = await Promise.all([getInvoices(), getClients(), getPayment()]);
+
+	return <InvoicesClient invoices={invoices} clients={clients} payment={payment} />;
 }

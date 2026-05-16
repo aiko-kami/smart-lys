@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
@@ -12,24 +14,38 @@ interface Props {
 }
 
 export default function TasksCalendarCard({ tasks = [] }: Props) {
+	const [month, setMonth] = useState(new Date());
+
 	function getTasksForDay(date: Date) {
 		return tasks.filter((task) => {
 			if (!task.dueDate) return false;
 
-			return new Date(task.dueDate).toDateString() === date.toDateString();
+			const taskDate = new Date(task.dueDate);
+
+			return taskDate.toDateString() === date.toDateString();
 		});
 	}
 
+	// ── tâches du mois affiché
+	const monthTasks = tasks.filter((task) => {
+		if (!task.dueDate) return false;
+
+		const date = new Date(task.dueDate);
+
+		return date.getMonth() === month.getMonth() && date.getFullYear() === month.getFullYear();
+	});
+
+	// ── counts dynamiques du mois affiché
 	const counts = Object.keys(taskTypeConfig).reduce(
 		(acc, type) => {
-			acc[type] = tasks.filter((t) => t.type === type).length;
+			acc[type] = monthTasks.filter((t) => t.type === type).length;
 
 			return acc;
 		},
 		{} as Record<string, number>,
 	);
 
-	const totalTasks = tasks.length;
+	const totalTasks = monthTasks.length;
 
 	return (
 		<div className="rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-sm">
@@ -38,6 +54,8 @@ export default function TasksCalendarCard({ tasks = [] }: Props) {
 			<div className="grid justify-center gap-6">
 				<DayPicker
 					mode="single"
+					month={month}
+					onMonthChange={setMonth}
 					classNames={{
 						day_today: "text-emerald-400 font-bold",
 					}}

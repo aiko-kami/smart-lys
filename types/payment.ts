@@ -1,9 +1,9 @@
 export interface Payment {
-	_id: string;
+	_id?: string;
 	name: string;
 	bank: string;
 	iban: string;
 	bic: string;
-	description?: string;
-	paymentTerms?: string;
+	description: string;
+	paymentTerms: string;
 }

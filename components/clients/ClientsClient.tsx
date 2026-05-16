@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import toast from "react-hot-toast";
 import ClientFormModal from "./ClientFormModal";
 import DeleteClientModal from "./DeleteClientModal";
 import ClientDetailsModal from "./ClientDetailsModal";
@@ -32,10 +33,10 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 					body: JSON.stringify(data),
 				});
 
-				if (!res.ok) throw new Error("Erreur lors de la modification");
+				if (!res.ok) throw new Error("Erreur lors de la modification du client");
 
 				const updated = await res.json();
-
+				toast.success("Client mis à jour");
 				setClients((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
 			} else {
 				const res = await fetch("/api/clients", {
@@ -44,16 +45,17 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 					body: JSON.stringify(data),
 				});
 
-				if (!res.ok) throw new Error("Erreur lors de la création");
+				if (!res.ok) throw new Error("Erreur lors de la création du client");
 
 				const created = await res.json();
-
+				toast.success("Nouveau client créé");
 				setClients((prev) => [...prev, created]);
 			}
 
 			setEditing(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Une erreur est survenue");
+			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		}
 	}
 
@@ -64,10 +66,12 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 		try {
 			const res = await fetch(`/api/clients/${deleteTarget._id}`, { method: "DELETE" });
 			if (!res.ok) throw new Error("Erreur lors de la suppression");
+			toast.success("Client suprimé");
 			setClients((prev) => prev.filter((c) => c._id !== deleteTarget._id));
 			setDeleteTarget(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Une erreur est survenue");
+			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		} finally {
 			setDeleting(false);
 		}
@@ -95,9 +99,6 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 					+ Nouveau client
 				</button>
 			</div>
-
-			{/* Error banner */}
-			{error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>}
 
 			{/* Search */}
 			<input

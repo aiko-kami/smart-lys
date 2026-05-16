@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { Invoice, Client } from "@/types";
+import toast from "react-hot-toast";
+
+import type { Invoice, Client, Payment } from "@/types";
 import { formatDate } from "@/utils/invoice";
 import InvoiceStatusBadge from "@/components/ui/InvoiceStatusBadge";
 import InvoiceFormModal from "@/components/invoices/InvoiceFormModal";
+import PaymentFormModal from "@/components/invoices/PaymentFormModal";
 import DeleteInvoiceModal from "@/components/invoices/DeleteInvoiceModal";
 
-export default function InvoicedClient({ invoices: initial, clients }: { invoices: Invoice[]; clients: Client[] }) {
+export default function InvoicedClient({ invoices: initial, clients, payment }: { invoices: Invoice[]; clients: Client[]; payment: Payment | null }) {
 	const [invoices, setInvoices] = useState(initial);
 
 	const [allClients] = useState<Client[]>(clients);
@@ -17,8 +20,10 @@ export default function InvoicedClient({ invoices: initial, clients }: { invoice
 	const [clientFilter, setClientFilter] = useState("all");
 
 	// ── Modals ─────────────────────────────
-	const [modalOpen, setModalOpen] = useState(false);
 	const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+	const [editModalOpen, setEditModalOpen] = useState(false);
+	const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+	const [paymentInfo, setPaymentInfo] = useState<Payment | null>(payment);
 	const [deleteModal, setDeleteModal] = useState<Invoice | null>(null);
 	const [deleting, setDeleting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -59,12 +64,12 @@ export default function InvoicedClient({ invoices: initial, clients }: { invoice
 	// ── ACTIONS ─────────────────────────────
 	function openCreate() {
 		setSelectedInvoice(null);
-		setModalOpen(true);
+		setEditModalOpen(true);
 	}
 
 	function handleEdit(inv: Invoice) {
 		setSelectedInvoice(inv);
-		setModalOpen(true);
+		setEditModalOpen(true);
 	}
 
 	async function handleSave(data: Partial<Invoice>) {
@@ -78,10 +83,10 @@ export default function InvoicedClient({ invoices: initial, clients }: { invoice
 					body: JSON.stringify(data),
 				});
 
-				if (!res.ok) throw new Error("Erreur lors de la modification");
+				if (!res.ok) throw new Error("Erreur lors de la modification de facture");
 
 				const updated = await res.json();
-
+				toast.success("Facture mise à jour");
 				setInvoices((prev) => prev.map((i) => (i._id === updated._id ? updated : i)));
 			} else {
 				const res = await fetch("/api/invoices", {
@@ -90,17 +95,18 @@ export default function InvoicedClient({ invoices: initial, clients }: { invoice
 					body: JSON.stringify(data),
 				});
 
-				if (!res.ok) throw new Error("Erreur lors de la création");
+				if (!res.ok) throw new Error("Erreur lors de la création de facture");
 
 				const created = await res.json();
-
+				toast.success("Nouvelle facture créée");
 				setInvoices((prev) => [...prev, created]);
 			}
 
-			setModalOpen(false);
+			setEditModalOpen(false);
 			setSelectedInvoice(null);
 		} catch (e) {
-			setError(e instanceof Error ? e.message : "Erreur inconnue");
+			setError(e instanceof Error ? e.message : "Une erreur est survenue");
+			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		}
 	}
 
@@ -113,11 +119,12 @@ export default function InvoicedClient({ invoices: initial, clients }: { invoice
 				method: "DELETE",
 			});
 
-			if (!res.ok) throw new Error("Erreur lors de la suppression");
-
+			if (!res.ok) throw new Error("Erreur lors de la suppression de facture");
+			toast.success("Facture suprimée");
 			setInvoices((prev) => prev.filter((i) => i._id !== id));
 		} catch (e) {
-			setError(e instanceof Error ? e.message : "Erreur inconnue");
+			setError(e instanceof Error ? e.message : "Une erreur est survenue");
+			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		} finally {
 			setDeleting(false);
 		}
@@ -134,14 +141,15 @@ export default function InvoicedClient({ invoices: initial, clients }: { invoice
 						{invoices.length} facture{invoices.length > 1 ? "s" : ""}
 					</p>
 				</div>
-
-				<button onClick={openCreate} className="rounded-xl bg-emerald-600 bg- px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-500">
-					+ Nouvelle facture
-				</button>
+				<div className="flex flex-col items-end gap-2">
+					<button onClick={openCreate} className="rounded-xl bg-emerald-600 bg- px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-500">
+						+ Nouvelle facture
+					</button>
+					<button onClick={() => setPaymentModalOpen(true)} className="text-right text-xs italic text-white hover:text-violet-500 cursor-pointer">
+						Mettre à jour les détails de paiement
+					</button>
+				</div>
 			</div>
-
-			{/* ERROR */}
-			{error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>}
 
 			{/* STATS */}
 			<div className="grid grid-cols-3 gap-3">
@@ -235,7 +243,18 @@ export default function InvoicedClient({ invoices: initial, clients }: { invoice
 			</p>
 
 			{/* MODALS */}
-			{modalOpen && <InvoiceFormModal invoice={selectedInvoice} clients={clients} onClose={() => setModalOpen(false)} onSave={handleSave} />}
+			{editModalOpen && <InvoiceFormModal invoice={selectedInvoice} clients={clients} onClose={() => setEditModalOpen(false)} onSave={handleSave} />}
+
+			{paymentModalOpen && (
+				<PaymentFormModal
+					open={paymentModalOpen}
+					payment={paymentInfo}
+					onClose={() => setPaymentModalOpen(false)}
+					onSaved={(saved) => {
+						setPaymentInfo(saved);
+					}}
+				/>
+			)}
 
 			{deleteModal && (
 				<DeleteInvoiceModal

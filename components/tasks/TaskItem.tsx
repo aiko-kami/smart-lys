@@ -27,11 +27,6 @@ export default function TaskItem({ task, onClick }: Props) {
 	return (
 		<div onClick={onClick} className="py-2 sm:p-4 flex items-center justify-between hover:bg-muted/30 transition cursor-pointer">
 			<div className="flex items-center gap-4">
-				{StatusIcon && (
-					<div className={`flex items-center justify-center`}>
-						<StatusIcon className={`text-2xl ${status.color}`} title={status.label} />
-					</div>
-				)}
 				<div className={`min-w-8 h-8 sm:w-11 sm:h-11 rounded-full flex items-center justify-center ${config.bg}`}>
 					<TypeIcon className={`sm:text-3xl ${config.color}`} title={config.label} />
 				</div>
@@ -56,10 +51,13 @@ export default function TaskItem({ task, onClick }: Props) {
 				</div>
 			</div>
 
-			<div className="text-right">
-				{task.priority && task.priority != "N/A" && <div className={`text-xs px-2 py-1 rounded-full inline-block capitalize ${priority.bg} ${priority.text}`}>{priorityLabel}</div>}
+			<div className="flex items-center gap-4">
+				<div className="hidden sm:block text-right">
+					{task.priority && task.priority != "N/A" && <div className={`text-xs px-2 py-1 rounded-full inline-block capitalize ${priority.bg} ${priority.text}`}>{priorityLabel}</div>}
 
-				<p className="text-sm font-medium mt-2 text-red-200">{formatDate(task.dueDate)}</p>
+					<p className="text-sm font-medium mt-2 text-red-200">{formatDate(task.dueDate)}</p>
+				</div>
+				{StatusIcon && <StatusIcon className={`text-lg sm:text-2xl ${status.color}`} title={status.label} />}
 			</div>
 		</div>
 	);

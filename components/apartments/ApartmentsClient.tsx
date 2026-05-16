@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import toast from "react-hot-toast";
 import ApartmentFormModal from "./ApartmentFormModal";
 import DeleteApartmentModal from "./DeleteApartmentModal";
 import ApartmentDetailsModal from "./ApartmentDetailsModal";
@@ -64,6 +65,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 				if (!res.ok) throw new Error("Erreur lors de la modification");
 
 				const updated = await res.json();
+				toast.success("Appartement mis à jour");
 
 				setApartments((prev) => prev.map((a) => (a._id === updated._id ? { ...updated, occupied: a.occupied } : a)));
 			} else {
@@ -76,6 +78,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 				if (!res.ok) throw new Error("Erreur lors de la création");
 
 				const created = await res.json();
+				toast.success("Appartement créé");
 
 				setApartments((prev) => [...prev, { ...created, occupied: false }]);
 			}
@@ -83,6 +86,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 			setEditing(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Une erreur est survenue");
+			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		}
 	}
 
@@ -93,10 +97,12 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 		try {
 			const res = await fetch(`/api/apartments/${deleteTarget._id}`, { method: "DELETE" });
 			if (!res.ok) throw new Error("Erreur lors de la suppression");
+			toast.success("Appartement suprimé");
 			setApartments((prev) => prev.filter((a) => a._id !== deleteTarget._id));
 			setDeleteTarget(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Une erreur est survenue");
+			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		} finally {
 			setDeleting(false);
 		}
@@ -124,9 +130,6 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 					+ Ajouter un appartement
 				</button>
 			</div>
-
-			{/* Error banner */}
-			{error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>}
 
 			{/* Stats */}
 			<div className="grid grid-cols-3 gap-3">
