@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Apartment, Reservation } from "@/types";
+
+// ─── types ────────────────────────────────────────────────────────────────────
 
 interface Props {
 	reservations: Reservation[];
@@ -9,116 +11,380 @@ interface Props {
 	onReservationClick: (reservation: Reservation) => void;
 }
 
-function startOfToday() {
-	const d = new Date();
-	d.setHours(0, 0, 0, 0);
-	return d;
+type View = "day" | "week" | "2weeks" | "month";
+
+// ─── helpers ──────────────────────────────────────────────────────────────────
+
+function midnight(d: Date) {
+	const c = new Date(d);
+	c.setHours(0, 0, 0, 0);
+	return c;
 }
 
-function addDays(date: Date, days: number) {
-	const d = new Date(date);
-	d.setDate(d.getDate() + days);
-	return d;
+function addDays(d: Date, n: number) {
+	const c = new Date(d);
+	c.setDate(c.getDate() + n);
+	return c;
 }
 
-function formatDay(d: Date) {
-	return d.toLocaleDateString("fr-FR", {
-		weekday: "short",
-		day: "2-digit",
-	});
+function isoDate(d: Date) {
+	return d.toISOString().split("T")[0];
 }
 
-function isInRange(day: Date, start: Date, end: Date) {
-	return day >= start && day <= end;
+function sameDay(a: Date, b: Date) {
+	return isoDate(a) === isoDate(b);
 }
 
-export default function ReservationsPlanning({ reservations = [], apartments = [], onReservationClick }: Props) {
-	const [view] = useState<"day" | "week" | "month">("week");
+function isWeekend(d: Date) {
+	const day = d.getDay();
+	return day === 0 || day === 6;
+}
 
-	// 📅 7 jours (semaine)
-	const days = useMemo(() => {
-		const start = startOfToday();
-		return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-	}, []);
+function viewLength(v: View) {
+	return { day: 1, week: 7, "2weeks": 14, month: 31 }[v];
+}
 
-	// 📌 index reservations par apartment + jour
-	const matrix = useMemo(() => {
-		const map: Record<string, Record<string, Reservation[]>> = {};
+function colMinWidth(v: View) {
+	return { day: 160, week: 110, "2weeks": 80, month: 52 }[v];
+}
 
-		for (const apartment of apartments) {
-			map[apartment._id] = {};
+// Checkout day: banner covers only the first third (morning departure).
+const CHECKOUT_FRACTION = 0.48;
+// Checkin day:  banner starts at 45% into the column (just under half).
+const CHECKIN_OFFSET = 0.52;
 
-			for (const day of days) {
-				const key = day.toISOString().split("T")[0];
+/**
+ * For a given reservation and the visible day range, return:
+ *   - colStart        : 0-based index of the first visible day of the stay
+ *   - colSpan         : full night columns (checkIn ≤ d < checkOut)
+ *   - checkoutInView  : whether the checkout day itself is visible in the grid
+ *   - startsHere      : the checkIn day is inside the visible window
+ *   - endsHere        : the last night (day before checkout) is inside the visible window
+ *
+ * The rendered width = colSpan full columns + CHECKOUT_FRACTION of one extra column
+ * when checkoutInView is true.
+ */
+function getSpan(
+	r: Reservation,
+	days: Date[],
+): {
+	colStart: number;
+	colSpan: number;
+	checkoutInView: boolean;
+	checkoutIdx: number;
+	startsHere: boolean;
+	endsHere: boolean;
+} | null {
+	const checkIn = midnight(new Date(r.checkIn));
+	const checkOut = midnight(new Date(r.checkOut));
 
-				map[apartment._id][key] = reservations.filter((r) => {
-					const checkIn = new Date(r.checkIn);
-					const checkOut = new Date(r.checkOut);
+	let colStart = -1;
+	let colSpan = 0;
 
-					return String(r.apartmentId) === apartment._id && isInRange(day, checkIn, checkOut);
-				});
-			}
+	for (let i = 0; i < days.length; i++) {
+		const d = days[i];
+		// full-night columns: checkIn ≤ d < checkOut
+		if (d >= checkIn && d < checkOut) {
+			if (colStart === -1) colStart = i;
+			colSpan++;
 		}
+	}
 
-		return map;
-	}, [reservations, apartments, days]);
+	// A reservation that only covers the checkout day (zero nights visible) is still
+	// shown if the checkout day is in the window — as a small stub.
+	const checkoutIdx = days.findIndex((d) => sameDay(d, checkOut));
+	const checkoutInView = checkoutIdx >= 0;
+
+	// Nothing to show at all
+	if (colStart === -1 && !checkoutInView) return null;
+
+	// Edge case: reservation ends before the window starts — only checkout day visible
+	if (colStart === -1) {
+		return {
+			colStart: checkoutIdx,
+			colSpan: 0,
+			checkoutInView: true,
+			checkoutIdx,
+			startsHere: false,
+			endsHere: false,
+		};
+	}
+
+	return {
+		colStart,
+		colSpan,
+		checkoutInView,
+		checkoutIdx,
+		startsHere: sameDay(days[colStart], checkIn),
+		endsHere: colSpan > 0 && sameDay(days[colStart + colSpan - 1], addDays(checkOut, -1)),
+	};
+}
+
+// ─── day header cell ──────────────────────────────────────────────────────────
+
+function DayHeader({ day, view, isToday }: { day: Date; view: View; isToday: boolean }) {
+	const isWknd = isWeekend(day);
+
+	const label =
+		view === "month"
+			? day.toLocaleDateString("fr-FR", { day: "2-digit" })
+			: view === "2weeks"
+				? day.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit" })
+				: day.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "short" });
 
 	return (
-		<div className="rounded-2xl border border-white/10 bg-[#111827]">
-			{/* HEADER */}
-			<div className="flex items-center justify-between border-b border-white/10 p-5">
-				<h2 className="text-xl font-semibold">Planning</h2>
+		<div
+			className={`flex flex-col items-center justify-center py-2 text-center text-[11px] font-medium
+				${isWknd ? "text-gray-600" : "text-gray-400"}
+				${isToday ? "!text-violet-400 font-semibold" : ""}
+			`}
+		>
+			{view === "month" ? (
+				<span>{label}</span>
+			) : (
+				<>
+					<span className="uppercase tracking-wide" style={{ fontSize: 9 }}>
+						{day.toLocaleDateString("fr-FR", { weekday: "short" })}
+					</span>
+					<span
+						className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs
+							${isToday ? "bg-violet-500 text-white" : ""}
+						`}
+					>
+						{day.getDate()}
+					</span>
+				</>
+			)}
+		</div>
+	);
+}
 
-				<div className="text-sm text-gray-400">Semaine en cours</div>
+// ─── apartment row ────────────────────────────────────────────────────────────
+
+function ApartmentRow({
+	apartment,
+	days,
+	reservations,
+	view,
+	today,
+	onReservationClick,
+}: {
+	apartment: Apartment;
+	days: Date[];
+	reservations: Reservation[];
+	view: View;
+	today: Date;
+	onReservationClick: (r: Reservation) => void;
+}) {
+	const N = days.length;
+
+	// filter reservations that overlap the window
+	const spans = useMemo(() => {
+		return reservations
+			.map((r) => {
+				const span = getSpan(r, days);
+				return span ? { r, ...span } : null;
+			})
+			.filter(Boolean) as Array<{
+			r: Reservation;
+			colStart: number;
+			colSpan: number;
+			checkoutInView: boolean;
+			checkoutIdx: number;
+			startsHere: boolean;
+			endsHere: boolean;
+		}>;
+	}, [reservations, days]);
+
+	const todayIdx = days.findIndex((d) => sameDay(d, today));
+
+	return (
+		<div className="flex border-b border-white/20 last:border-0">
+			{/* apartment label */}
+			<div className="sticky left-0 z-30 flex w-[180px] shrink-0 items-center gap-2.5 border-r border-white/20 bg-[#0F1117] px-3 py-2">
+				<img
+					src={apartment.image}
+					onError={(e) => {
+						e.currentTarget.src = "/images/house-placeholder.jpg";
+					}}
+					className="h-8 w-8 shrink-0 rounded-lg object-cover"
+					alt={apartment.name}
+				/>
+				<span className="truncate text-xs font-medium text-white">{apartment.name}</span>
 			</div>
 
-			{/* TABLE */}
-			<div className="overflow-x-auto">
-				<div className="min-w-[900px]">
-					{/* HEADER ROW */}
-					<div className="grid grid-cols-[200px_repeat(7,1fr)] border-b border-white/10 bg-black/20">
-						<div className="p-3 text-xs text-gray-400">Logements</div>
+			{/* grid */}
+			<div
+				className="relative min-h-[52px] flex-1"
+				style={{
+					display: "grid",
+					gridTemplateColumns: `repeat(${N}, minmax(${colMinWidth(view)}px, 1fr))`,
+				}}
+			>
+				{/* background cells */}
+				{days.map((d, i) => (
+					<div key={isoDate(d)} className={`border-r border-white/20 ${isWeekend(d) ? "bg-white/[0.015]" : ""} ${sameDay(d, today) ? "bg-violet-500/[0.04]" : ""}`} />
+				))}
 
-						{days.map((day) => (
-							<div key={day.toISOString()} className="p-3 text-center text-xs text-gray-400">
-								{formatDay(day)}
-							</div>
-						))}
+				{/* today vertical highlight */}
+				{todayIdx >= 0 && (
+					<div
+						className="pointer-events-none absolute inset-y-0 z-10"
+						style={{
+							left: `calc(${(todayIdx / N) * 100}%)`,
+							width: `calc(${(1 / N) * 100}%)`,
+							borderLeft: "1px solid rgba(139,92,246,0.25)",
+							borderRight: "1px solid rgba(139,92,246,0.25)",
+						}}
+					/>
+				)}
+
+				{/* reservation banners */}
+				{spans.map(({ r, colStart, colSpan, checkoutInView, startsHere, endsHere }) => {
+					// Checkin starts at the last third of its column (afternoon arrival)
+					const checkinShift = startsHere ? CHECKIN_OFFSET : 0;
+
+					// Effective columns:
+					//   subtract the 2/3 we skip on the checkin column
+					//   add 1/3 for the checkout morning stub (if visible)
+					const effectiveCols = colSpan - checkinShift + (checkoutInView ? CHECKOUT_FRACTION : 0);
+
+					const GAP = 2;
+					const left = `calc(${((colStart + checkinShift) / N) * 100}% + ${GAP}px)`;
+					const width = `calc(${(effectiveCols / N) * 100}% - ${GAP * 2}px)`;
+
+					const incomplete = !r.guestName || !r.totalPrice;
+
+					return (
+						<button
+							key={r._id}
+							onClick={() => onReservationClick(r)}
+							title={r.guestName ?? "À compléter"}
+							style={{ left, width }}
+							className={`group absolute inset-y-[7px] z-20 flex items-center gap-1.5 overflow-hidden px-2.5 text-left transition-opacity hover:opacity-80
+								${startsHere ? "rounded-l-md" : ""}
+								rounded-r-md
+								${incomplete ? "border border-amber-500/50 bg-amber-700/90 text-amber-100" : "border border-violet-500/50 bg-violet-700/90 text-violet-200"}
+							`}
+						>
+							{incomplete && <span className="shrink-0 text-[10px] text-amber-400">⚠</span>}
+							<span className="truncate text-[11px] font-medium">{r.guestName ?? r.reference ?? "À compléter"}</span>
+							{r.platform && colSpan > 1 && <span className="ml-auto shrink-0 text-[10px] text-violet-400/70">{r.platform}</span>}
+							{r.totalPrice && colSpan > 1 && <span className="ml-auto shrink-0 text-[10px] text-violet-400/70">{r.totalPrice} €</span>}
+						</button>
+					);
+				})}
+			</div>
+		</div>
+	);
+}
+
+// ─── main component ───────────────────────────────────────────────────────────
+
+const VIEW_LABELS: Record<View, string> = {
+	day: "Jour",
+	week: "Semaine",
+	"2weeks": "2 semaines",
+	month: "Mois",
+};
+
+export default function ReservationsPlanning({ reservations = [], apartments = [], onReservationClick }: Props) {
+	const [view, setView] = useState<View>("week");
+	const [offset, setOffset] = useState(0); // in units of viewLength
+
+	const today = useMemo(() => midnight(new Date()), []);
+
+	const days = useMemo(() => {
+		const len = viewLength(view);
+		const start = addDays(today, offset * len);
+		return Array.from({ length: len }, (_, i) => addDays(start, i));
+	}, [view, offset, today]);
+
+	const periodLabel = useMemo(() => {
+		const first = days[0];
+		const last = days[days.length - 1];
+		if (view === "day") {
+			return first.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+		}
+		const sameMonth = first.getMonth() === last.getMonth();
+		if (sameMonth) {
+			return first.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+		}
+		return `${first.toLocaleDateString("fr-FR", { month: "short" })} – ${last.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`;
+	}, [days, view]);
+
+	return (
+		<div className="flex flex-col rounded-2xl border border-white/10 bg-[#0F1117] overflow-hidden">
+			{/* ── TOOLBAR ── */}
+			<div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/20 px-5 py-3">
+				{/* left: nav */}
+				<div className="flex items-center gap-2">
+					<button onClick={() => setOffset(0)} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-gray-400 hover:bg-white/5">
+						Aujourd'hui
+					</button>
+					<button onClick={() => setOffset((o) => o - 1)} className="rounded-lg border border-white/10 p-1.5 text-gray-400 hover:bg-white/5">
+						<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+							<path d="M9 3L5 7l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+						</svg>
+					</button>
+					<span className="min-w-[160px] text-center text-sm font-medium capitalize text-white">{periodLabel}</span>
+					<button onClick={() => setOffset((o) => o + 1)} className="rounded-lg border border-white/10 p-1.5 text-gray-400 hover:bg-white/5">
+						<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+							<path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+						</svg>
+					</button>
+				</div>
+
+				{/* right: view switcher */}
+				<div className="flex gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+					{(Object.keys(VIEW_LABELS) as View[]).map((v) => (
+						<button
+							key={v}
+							onClick={() => {
+								setView(v);
+								setOffset(0);
+							}}
+							className={`rounded-lg px-3 py-1.5 text-xs transition ${view === v ? "bg-white/10 text-white font-medium" : "text-gray-500 hover:text-gray-300"}`}
+						>
+							{VIEW_LABELS[v]}
+						</button>
+					))}
+				</div>
+			</div>
+
+			{/* ── GRID ── */}
+			<div className="overflow-x-auto">
+				<div style={{ minWidth: 180 + viewLength(view) * colMinWidth(view) }}>
+					{/* header row */}
+					<div className="sticky top-0 z-30 flex border-b border-white/20 bg-[#0F1117]">
+						{/* label spacer */}
+						<div className="sticky left-0 z-40 w-[180px] shrink-0 border-r border-white/20 bg-[#0F1117] px-3 py-2 text-[10px] uppercase tracking-widest text-gray-600">Logement</div>
+						{/* day headers */}
+						<div
+							className="flex-1"
+							style={{
+								display: "grid",
+								gridTemplateColumns: `repeat(${days.length}, minmax(${colMinWidth(view)}px, 1fr))`,
+							}}
+						>
+							{days.map((d) => (
+								<DayHeader key={isoDate(d)} day={d} view={view} isToday={sameDay(d, today)} />
+							))}
+						</div>
 					</div>
 
-					{/* ROWS */}
-					{apartments.map((apartment) => (
-						<div key={apartment._id} className="grid grid-cols-[200px_repeat(7,1fr)] border-b border-white/10">
-							{/* APARTMENT CELL */}
-							<div className="flex items-center gap-3 p-3">
-								<img
-									src={
-										apartment.image ||
-										"https://www.thespruce.com/thmb/nwyp8faCKNudvl1OBdmC3g7i9Vw=/750x0/filters:no_upscale():max_bytes(150000):strip_icc()/PAinteriors-7-cafe9c2bd6be4823b9345e591e4f367f.jpg"
-									}
-									className="h-10 w-10 rounded-lg object-cover"
-									alt={apartment.name}
-								/>
-								<span className="text-sm font-medium text-white">{apartment.name}</span>
-							</div>
-
-							{/* DAYS */}
-							{days.map((day) => {
-								const key = day.toISOString().split("T")[0];
-
-								const cellReservations = matrix[apartment._id]?.[key] || [];
-
-								return (
-									<div key={key} className="min-h-[60px] border-l border-white/5 p-1">
-										{cellReservations.map((r) => (
-											<button key={r._id} onClick={() => onReservationClick(r)} className="w-full rounded-md bg-violet-500/10 px-2 py-1 text-left text-[11px] text-violet-200 hover:bg-violet-500/20">
-												{r.guestName}
-											</button>
-										))}
-									</div>
-								);
-							})}
-						</div>
+					{/* apartment rows */}
+					{apartments.length === 0 && <div className="py-16 text-center text-sm text-gray-600">Aucun logement configuré</div>}
+					{apartments.map((apt) => (
+						<ApartmentRow
+							key={apt._id}
+							apartment={apt}
+							days={days}
+							reservations={reservations.filter((r) => String(r.apartmentId) === apt._id)}
+							view={view}
+							today={today}
+							onReservationClick={onReservationClick}
+						/>
 					))}
 				</div>
 			</div>
