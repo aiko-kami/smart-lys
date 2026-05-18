@@ -14,7 +14,7 @@ export default function PlatformIcon({ platform }: { platform: Platform }) {
 		<div className="flex items-center gap-2">
 			{"icon" in current && current.icon ? <current.icon className="text-xl" style={"color" in current ? { color: current.color } : undefined} title={current.label} /> : null}
 
-			<span className="text-base text-gray-200">{current.label}</span>
+			<span className="text-sm text-gray-200">{current.label}</span>
 		</div>
 	);
 }

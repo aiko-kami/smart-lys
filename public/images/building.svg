@@ -1,0 +1,20 @@
+<svg width="600" height="600" viewBox="0 0 600 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="600" height="600" fill="#DDDFE4"/>
+<path d="M75 399.731H525V445.885C525 463.409 510.794 477.615 493.269 477.615H424.254L75 399.731Z" fill="#CED1D7"/>
+<path d="M208.208 143H385.921V397.979H208.208V143Z" fill="#BABFC9"/>
+<rect x="233.654" y="186.269" width="34.6154" height="44.7115" fill="#DEDEDE" fill-opacity="0.6"/>
+<rect x="233.654" y="256.942" width="34.6154" height="46.1538" fill="#DEDEDE" fill-opacity="0.6"/>
+<rect x="279.808" y="186.269" width="34.6154" height="44.7115" fill="#DEDEDE" fill-opacity="0.6"/>
+<rect x="325.962" y="186.269" width="34.6154" height="44.7115" fill="#DEDEDE" fill-opacity="0.6"/>
+<rect x="279.808" y="256.942" width="34.6154" height="46.1538" fill="#DEDEDE" fill-opacity="0.6"/>
+<rect x="325.962" y="256.942" width="34.6154" height="46.1538" fill="#DEDEDE" fill-opacity="0.6"/>
+<path d="M325.962 337.712H360.577V398.289H325.962V337.712Z" fill="#A2AAB9" fill-opacity="0.6"/>
+<path d="M279.808 337.712H314.423V398.289H279.808V337.712Z" fill="#A2AAB9" fill-opacity="0.6"/>
+<path d="M233.654 337.712H268.269V398.289H233.654V337.712Z" fill="#A2AAB9" fill-opacity="0.6"/>
+<path d="M130.941 267.142H208.208V398.495H130.941V267.142Z" fill="#A2AAB9"/>
+<rect x="146.394" y="290.322" width="46.3599" height="61.8132" rx="5.76923" fill="#BABFC9"/>
+<rect x="414.662" y="331.408" width="12.212" height="67.166" fill="#A2A9B9"/>
+<ellipse cx="420.768" cy="300.878" rx="42.742" ry="48.848" fill="#A2A9B9"/>
+<rect x="454.182" y="355.495" width="6.106" height="48.848" fill="#A2A9B9"/>
+<ellipse cx="457.236" cy="334.124" rx="27.477" ry="33.583" fill="#BABFC9"/>
+</svg>

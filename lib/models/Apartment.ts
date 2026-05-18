@@ -11,6 +11,7 @@ const ApartmentSchema = new Schema(
 		},
 		airbnbIcalUrl: { type: String, default: "" },
 		description: { type: String, default: "" },
+		image: { type: String, default: "" },
 		keys: { type: String, default: "" },
 		floor: { type: String, default: "" },
 		beds: { type: String, default: "" },

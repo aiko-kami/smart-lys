@@ -11,9 +11,9 @@ import { RemoveButton, EditButton } from "@/components/buttons/Buttons";
 
 function InfoRow({ label, children }: any) {
 	return (
-		<div className="flex items-center justify-between gap-4 py-3">
+		<div className="flex items-center justify-between gap-4 py-3 min-h-14">
 			<span className="text-xs uppercase tracking-wide text-gray-500">{label}</span>
-			<div className="text-base text-right text-gray-200">{children}</div>
+			<div className="text-sm text-right text-gray-200">{children}</div>
 		</div>
 	);
 }
@@ -29,6 +29,10 @@ export default function ApartmentDetailsModal({ apartment, onClose, onEdit, onDe
 	}, [onClose]);
 
 	if (!apartment) return null;
+
+	const imageApartment = (apartment as any).image?.trim() || "/images/house-placeholder.jpg";
+
+	console.log("🚀 ~ ApartmentDetailsModal ~ imageApartment:", imageApartment);
 
 	return (
 		<Modal open={!!apartment} onClose={onClose}>
@@ -65,6 +69,15 @@ export default function ApartmentDetailsModal({ apartment, onClose, onEdit, onDe
 				<div className="py-3 space-y-2">
 					<p className="text-xs uppercase text-gray-500">Description</p>
 					<p className="pl-2 text-sm text-gray-300 leading-relaxed">{(apartment as any).description || "Aucune description"}</p>
+				</div>
+
+				<div className="py-3 space-y-2">
+					<p className="text-xs uppercase text-gray-500">Image</p>
+					{(apartment as any).image && (
+						<div className="mt-3 pl-2">
+							<img src={imageApartment} alt="Apartment" className="h-50 w-full rounded-xl object-cover border border-white/10" />
+						</div>
+					)}
 				</div>
 
 				{/* ICAL */}
@@ -107,19 +120,28 @@ export default function ApartmentDetailsModal({ apartment, onClose, onEdit, onDe
 				<div className="col-span-4 divide-y divide-white/5">
 					<div className="py-3 space-y-2">
 						<p className="text-xs uppercase text-gray-500">Description</p>
-						<p className="pl-2 text-base text-gray-200 leading-relaxed">{(apartment as any).description || "Aucune description"}</p>
+						<p className="pl-2 text-sm text-gray-200 leading-relaxed">{(apartment as any).description || "Aucune description"}</p>
+					</div>
+
+					<div className="py-3 space-y-2">
+						<p className="text-xs uppercase text-gray-500">Image</p>
+						{(apartment as any).image && (
+							<div className="mt-3 pl-2">
+								<img src={imageApartment} alt="Apartment" className="h-50 w-full rounded-xl object-cover border border-white/10" />
+							</div>
+						)}
 					</div>
 
 					<div className="py-3 space-y-2">
 						<p className="text-xs uppercase text-gray-500">Airbnb iCal</p>
-						<a href={(apartment as any).airbnbIcal} target="_blank" className="pl-2 text-base text-blue-400 break-all hover:underline">
+						<a href={(apartment as any).airbnbIcal} target="_blank" className="pl-2 text-sm text-blue-400 break-all hover:underline">
 							{(apartment as any).airbnbIcal || "—"}
 						</a>
 					</div>
 
 					<div className="py-3 space-y-2">
 						<p className="text-xs uppercase text-gray-500">ID</p>
-						<p className="pl-2 text-base text-gray-200">{apartment._id}</p>
+						<p className="pl-2 text-sm text-gray-200">{apartment._id}</p>
 					</div>
 				</div>
 			</div>

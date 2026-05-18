@@ -68,12 +68,14 @@ export default function TasksCalendarCard({ tasks = [] }: Props) {
 									{children}
 
 									{dayTasks.length > 0 && (
-										<div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 gap-0.5">
-											{dayTasks.slice(0, 3).map((task, index) => (
+										<div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 items-end gap-0.5">
+											{/* Points */}
+											{dayTasks.slice(0, dayTasks.length > 3 ? 2 : 3).map((task, index) => (
 												<div key={index} className={`h-1.5 w-1.5 rounded-full ${taskTypeConfig[task.type].dot}`} />
 											))}
 
-											{dayTasks.length > 3 && <div className="ml-0.5 text-[9px] text-gray-400">+{dayTasks.length - 3}</div>}
+											{/* Counter */}
+											{dayTasks.length > 3 && <span className="text-[9px] leading-none text-gray-400 translate-y-[1px]">+{dayTasks.length - 2}</span>}
 										</div>
 									)}
 								</button>

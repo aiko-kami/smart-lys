@@ -1,32 +1,35 @@
-import mongoose, { Schema, model, models } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const ReservationSchema = new Schema(
 	{
-		apartmentId: {
-			type: Schema.Types.ObjectId,
-			ref: "Apartment",
-			required: true,
-		},
+		apartmentId: { type: Schema.Types.ObjectId, ref: "Apartment", required: true, index: true },
 		guestName: { type: String, required: true, trim: true },
 		guestEmail: { type: String, default: "", trim: true, lowercase: true },
-		phone: { type: String, default: "", trim: true },
-		checkIn: { type: Date, required: true },
-		checkOut: { type: Date, required: true },
-		nights: { type: Number, required: true },
-		source: {
-			type: String,
-			enum: ["airbnb", "direct", "other"],
-			default: "direct",
-		},
-		status: {
-			type: String,
-			enum: ["pending", "confirmed", "cancelled", "completed"],
-			default: "pending",
-		},
+		guestPhone: { type: String, default: "", trim: true },
+		guests: { type: Number, default: 1, min: 1 },
+		checkIn: { type: Date, required: true, index: true },
+		checkOut: { type: Date, required: true, index: true },
+		nights: { type: Number, required: true, min: 1 },
+		platform: { type: String, enum: ["airbnb", "booking", "direct", "other"], default: "direct", index: true },
+		externalId: { type: String, default: "" },
+		icalUid: { type: String, default: "", index: true },
+		isImported: { type: Boolean, default: false },
+		isIncomplete: { type: Boolean, default: false },
+		totalAmount: { type: Number, default: 0 },
+		currency: { type: String, default: "EUR" },
+		cleaningFee: { type: Number, default: 0 },
+		cityTax: { type: Number, default: 0 },
+		status: { type: String, enum: ["pending", "confirmed", "cancelled", "completed"], default: "pending", index: true },
+		arrivalTime: { type: String, default: "" },
+		departureTime: { type: String, default: "" },
 		notes: { type: String, default: "" },
+		isArchived: { type: Boolean, default: false },
+		lastSyncAt: { type: Date },
 	},
-	{ timestamps: true },
+	{ collection: "reservations", timestamps: true },
 );
+
+ReservationSchema.index({ apartmentId: 1, checkIn: 1, checkOut: 1 });
 
 export function getReservationModel(conn: mongoose.Connection) {
 	return conn.models.Reservation || conn.model("Reservation", ReservationSchema);

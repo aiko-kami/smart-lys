@@ -15,6 +15,7 @@ export interface Apartment {
 	platform: Platform;
 	airbnbIcalUrl?: string;
 	description?: string;
+	image?: string;
 	keys?: string;
 	floor?: string;
 	beds?: string;

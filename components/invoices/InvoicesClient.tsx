@@ -49,6 +49,7 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 		() => ({
 			total: invoices.length,
 			paid: invoices.filter((i) => i.status === "paid").length,
+			sent: invoices.filter((i) => i.status === "sent").length,
 			late: invoices.filter((i) => i.status === "late").length,
 		}),
 		[invoices],
@@ -152,14 +153,18 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 			</div>
 
 			{/* STATS */}
-			<div className="grid grid-cols-3 gap-3">
+			<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 				{[
 					{ label: "Total", value: stats.total, color: "text-white" },
 					{ label: "Payées", value: stats.paid, color: "text-green-400" },
-					{ label: "En retard", value: stats.late, color: "text-red-400" },
+					{ label: "Envoyées", value: stats.sent, color: "text-white" },
+
+					// affiché seulement si > 0
+					...(stats.late > 0 ? [{ label: "En retard", value: stats.late, color: "text-red-400" }] : []),
 				].map((s) => (
 					<div key={s.label} className="rounded-2xl border border-white/10 bg-[#111827] p-4">
 						<p className="text-xs uppercase text-gray-400">{s.label}</p>
+
 						<p className={`mt-2 text-3xl font-bold ${s.color}`}>{s.value}</p>
 					</div>
 				))}

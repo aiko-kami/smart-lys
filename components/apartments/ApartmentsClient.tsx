@@ -53,6 +53,8 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 	);
 
 	async function handleSave(data: Partial<Apartment>) {
+		console.log("🚀 ~ handleSave ~ data:", data);
+
 		setError(null);
 		try {
 			if (editing && editing !== "new") {

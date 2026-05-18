@@ -25,6 +25,7 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Apart
 		floor: apartment?.floor ?? "",
 		beds: apartment?.beds ?? "",
 		description: apartment?.description ?? "",
+		image: apartment?.image ?? "",
 	});
 
 	useEffect(() => {
@@ -109,6 +110,10 @@ export default function ApartmentFormModal({ apartment, onClose, onSave }: Apart
 
 					<Field label="Lits">
 						<input value={form.beds} onChange={(e) => set("beds", e.target.value)} className={INPUT_CLASS} />
+					</Field>
+
+					<Field label="Lien image">
+						<input value={form.image} onChange={(e) => set("image", e.target.value)} className={INPUT_CLASS} />
 					</Field>
 
 					{form.platform === "airbnb" && (
