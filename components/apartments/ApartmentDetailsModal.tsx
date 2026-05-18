@@ -30,10 +30,6 @@ export default function ApartmentDetailsModal({ apartment, onClose, onEdit, onDe
 
 	if (!apartment) return null;
 
-	const imageApartment = (apartment as any).image?.trim() || "/images/house-placeholder.jpg";
-
-	console.log("🚀 ~ ApartmentDetailsModal ~ imageApartment:", imageApartment);
-
 	return (
 		<Modal open={!!apartment} onClose={onClose}>
 			{/* HEADER */}
@@ -75,7 +71,14 @@ export default function ApartmentDetailsModal({ apartment, onClose, onEdit, onDe
 					<p className="text-xs uppercase text-gray-500">Image</p>
 					{(apartment as any).image && (
 						<div className="mt-3 pl-2">
-							<img src={imageApartment} alt="Apartment" className="h-50 w-full rounded-xl object-cover border border-white/10" />
+							<img
+								src={(apartment as any).image}
+								onError={(e) => {
+									e.currentTarget.src = "/images/house-placeholder.jpg";
+								}}
+								alt="Apartment"
+								className="h-50 w-full rounded-xl object-cover border border-white/10"
+							/>
 						</div>
 					)}
 				</div>
@@ -127,7 +130,14 @@ export default function ApartmentDetailsModal({ apartment, onClose, onEdit, onDe
 						<p className="text-xs uppercase text-gray-500">Image</p>
 						{(apartment as any).image && (
 							<div className="mt-3 pl-2">
-								<img src={imageApartment} alt="Apartment" className="h-50 w-full rounded-xl object-cover border border-white/10" />
+								<img
+									src={(apartment as any).image}
+									onError={(e) => {
+										e.currentTarget.src = "/images/house-placeholder.jpg";
+									}}
+									alt="Apartment"
+									className="h-50 w-full rounded-xl object-cover border border-white/10"
+								/>
 							</div>
 						)}
 					</div>
