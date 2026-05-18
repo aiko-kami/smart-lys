@@ -17,7 +17,7 @@ const ApartmentSchema = new Schema(
 		beds: { type: String, default: "" },
 		platform: {
 			type: String,
-			enum: ["airbnb", "direct", "other"],
+			enum: ["airbnb", "booking", "direct", "other"],
 			default: "other",
 		},
 	},

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import PlatformIcon from "@/components/ui/PlatformIcon";
 import type { Apartment, Reservation } from "@/types";
 
 // ─── types ────────────────────────────────────────────────────────────────────
@@ -261,16 +262,29 @@ function ApartmentRow({
 							onClick={() => onReservationClick(r)}
 							title={r.guestName ?? "À compléter"}
 							style={{ left, width }}
-							className={`group absolute inset-y-[7px] z-20 flex items-center gap-1.5 overflow-hidden px-2.5 text-left transition-opacity hover:opacity-80
-								${startsHere ? "rounded-l-md" : ""}
-								rounded-r-md
-								${incomplete ? "border border-amber-500/50 bg-amber-700/90 text-amber-100" : "border border-violet-500/50 bg-violet-700/90 text-violet-200"}
-							`}
+							className={`group absolute inset-y-[7px] z-20 flex items-center overflow-hidden px-2.5 text-left transition-opacity hover:opacity-80
+		${startsHere ? "rounded-l-md" : ""}
+		rounded-r-md
+		${incomplete ? "border border-amber-500/50 bg-amber-700/90 text-amber-100" : "border border-violet-500/50 bg-violet-700/90 text-violet-200"}
+	`}
 						>
-							{incomplete && <span className="shrink-0 text-[10px] text-amber-400">⚠</span>}
-							<span className="truncate text-[11px] font-medium">{r.guestName ?? r.reference ?? "À compléter"}</span>
-							{r.platform && colSpan > 1 && <span className="ml-auto shrink-0 text-[10px] text-violet-400/70">{r.platform}</span>}
-							{r.totalPrice && colSpan > 1 && <span className="ml-auto shrink-0 text-[10px] text-violet-400/70">{r.totalPrice} €</span>}
+							{/* LEFT */}
+							<div className="flex items-center gap-1.5 min-w-0 flex-1">
+								{incomplete && (
+									<span className="shrink-0 text-[14px] text-amber-400" title="Réservation incomplète">
+										⚠
+									</span>
+								)}
+
+								<span className="truncate text-[11px] font-medium">{r.guestName ?? r.reference ?? "À compléter"}</span>
+							</div>
+
+							{/* RIGHT */}
+							{r.platform && colSpan > 1 && (
+								<div className="ml-2 shrink-0">
+									<PlatformIcon platform={r.platform} logoOnly />
+								</div>
+							)}
 						</button>
 					);
 				})}

@@ -10,7 +10,7 @@ const ReservationSchema = new Schema(
 		checkIn: { type: Date, required: true, index: true },
 		checkOut: { type: Date, required: true, index: true },
 		nights: { type: Number, required: true, min: 1 },
-		platform: { type: String, enum: ["airbnb", "booking", "direct", "other"], default: "direct", index: true },
+		platform: { type: String, enum: ["airbnb", "booking", "direct", "other"], default: "other", index: true },
 		externalId: { type: String, default: "" },
 		icalUid: { type: String, default: "", index: true },
 		isImported: { type: Boolean, default: false },

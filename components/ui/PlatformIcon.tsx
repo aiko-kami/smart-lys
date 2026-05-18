@@ -3,7 +3,7 @@
 import type { Platform } from "@/types";
 import { PLATFORMS } from "@/utils/constants";
 
-export default function PlatformIcon({ platform }: { platform: Platform }) {
+export default function PlatformIcon({ platform, logoOnly = false }: { platform: Platform; logoOnly?: boolean }) {
 	const current = PLATFORMS.find((p) => p.value === platform);
 
 	if (!current) {
@@ -13,8 +13,7 @@ export default function PlatformIcon({ platform }: { platform: Platform }) {
 	return (
 		<div className="flex items-center gap-2">
 			{"icon" in current && current.icon ? <current.icon className="text-xl" style={"color" in current ? { color: current.color } : undefined} title={current.label} /> : null}
-
-			<span className="text-sm text-gray-200">{current.label}</span>
+			{!logoOnly && <span className="text-sm text-gray-200">{current.label}</span>}
 		</div>
 	);
 }
