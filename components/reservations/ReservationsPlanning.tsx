@@ -254,7 +254,7 @@ function ApartmentRow({
 					const left = `calc(${((colStart + checkinShift) / N) * 100}% + ${GAP}px)`;
 					const width = `calc(${(effectiveCols / N) * 100}% - ${GAP * 2}px)`;
 
-					const incomplete = !r.guestName || !r.totalPrice;
+					const incomplete = !r.guestName || !r.totalAmount;
 
 					return (
 						<button
@@ -276,7 +276,7 @@ function ApartmentRow({
 									</span>
 								)}
 
-								<span className="truncate text-[11px] font-medium">{r.guestName ?? r.reference ?? "À compléter"}</span>
+								<span className="truncate text-[11px] font-medium">{r.guestName ?? "À compléter"}</span>
 							</div>
 
 							{/* RIGHT */}
