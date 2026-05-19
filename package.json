@@ -11,8 +11,11 @@
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
     "@sparticuz/chromium": "^123.0.1",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
     "framer-motion": "^12.38.0",
     "ical.js": "^2.2.1",
+    "jose": "^6.2.3",
     "jspdf": "^4.2.1",
     "luxon": "^3.7.2",
     "mongoose": "^9.5.0",

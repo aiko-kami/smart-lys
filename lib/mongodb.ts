@@ -1,11 +1,5 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI_PRIVATE!;
-
-if (!MONGODB_URI) {
-	throw new Error("Please define MONGODB_URI_PRIVATE in .env.local");
-}
-
 // Cache on the global object to survive Next.js hot reloads
 interface MongooseCache {
 	conn: mongoose.Connection | null;
@@ -23,6 +17,12 @@ if (!global.mongooseCache) {
 const cache = global.mongooseCache;
 
 export async function connectDB(): Promise<mongoose.Connection> {
+	const MONGODB_URI = process.env.MONGODB_URI_PRIVATE;
+
+	if (!MONGODB_URI) {
+		throw new Error("Missing MONGODB_URI_PRIVATE");
+	}
+
 	// Already connected — return immediately
 	if (cache.conn?.readyState === 1) {
 		return cache.conn;
