@@ -29,7 +29,7 @@ export default function LoginPage() {
 			});
 
 			if (!res.ok) {
-				setError("PIN incorrect");
+				setError("incorrect");
 				return;
 			}
 
