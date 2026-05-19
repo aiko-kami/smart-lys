@@ -52,6 +52,8 @@ async function getApartments() {
 	return withStatus;
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function ApartmentsPage() {
 	const conn = await connectDB();
 
