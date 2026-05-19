@@ -38,6 +38,8 @@ async function getApartments() {
 	return JSON.parse(JSON.stringify(apartments));
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function TasksPage() {
 	const [tasks, clients, apartments] = await Promise.all([getTasks(), getClients(), getApartments()]);
 

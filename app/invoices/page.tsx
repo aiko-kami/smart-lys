@@ -38,6 +38,8 @@ async function getPayment() {
 	return JSON.parse(JSON.stringify(payment));
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function InvoicesPage() {
 	const [invoices, clients, payment] = await Promise.all([getInvoices(), getClients(), getPayment()]);
 

@@ -9,6 +9,8 @@ async function getClients() {
 	return JSON.parse(JSON.stringify(raw));
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function ClientsPage() {
 	const clients = await getClients();
 	return <ClientsClient clients={clients} />;

@@ -32,7 +32,7 @@ async function getApartments() {
 	return JSON.parse(JSON.stringify(apartments));
 }
 
-// ── PAGE ─────────────────────────────────
+export const dynamic = "force-dynamic";
 
 export default async function ReservationsPage() {
 	const [reservations, apartments] = await Promise.all([getReservations(), getApartments()]);
