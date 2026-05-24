@@ -1,13 +1,18 @@
 "use client";
 
-import { FaXmark, FaTriangleExclamation } from "react-icons/fa6";
+import { FaTriangleExclamation, FaXmark } from "react-icons/fa6";
 
 import Modal from "@/components/ui/Modal";
-import type { DeleteClientModalProps } from "@/types";
+import { DeleteTaskModalProps } from "@/types";
 
-export default function DeleteClientModal({ client, deleting, onConfirm, onClose }: DeleteClientModalProps) {
+function formatDate(d?: string | Date) {
+	if (!d) return "—";
+	return new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+}
+
+export default function DeleteTaskModal({ task, deleting, onConfirm, onClose }: DeleteTaskModalProps) {
 	return (
-		<Modal open={!!client} onClose={onClose}>
+		<Modal open={!!task} onClose={onClose}>
 			<div className="w-full sm:max-w-md rounded-2xl bg-[#0F172A] p-6">
 				{/* HEADER */}
 				<div className="mb-5 flex items-start justify-between gap-4">
@@ -16,24 +21,24 @@ export default function DeleteClientModal({ client, deleting, onConfirm, onClose
 							<FaTriangleExclamation className="text-red-400" />
 						</div>
 
-						<h2 className="text-base font-semibold">Supprimer le client</h2>
+						<h2 className="text-base font-semibold">Supprimer la tâche</h2>
 					</div>
 
 					<button onClick={onClose} className="rounded-lg border border-white/10 p-1.5 text-gray-400 hover:bg-white/10">
-						<FaXmark size={13} />
+						<FaXmark size={16} />
 					</button>
 				</div>
 
 				{/* INFO BOX */}
+				<p className="mb-2 text-sm text-gray-400">êtes-vous sûr de vouloir supprimer cette tâche ?</p>
 				<div className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-					<p className="font-medium">{client.name}</p>
-					{client.email && <p className="mt-0.5 text-xs text-gray-400">{client.email}</p>}
-					{client.phone && <p className="mt-0.5 text-xs text-gray-500">{client.phone}</p>}
+					<h3 className="text-lg font-semibold">{task.title}</h3>
+					<p className="mt-2 text-sm">{task.description}</p>
 				</div>
 
 				{/* WARNING */}
 				<p className="mb-6 text-sm text-gray-400">
-					Cette action est <span className="font-medium text-white">irréversible</span>. Toutes les données associées à ce client seront supprimées définitivement.
+					Cette action est <span className="font-medium text-white">irréversible</span>. Toutes les données associées à cette tâche seront supprimées définitivement.
 				</p>
 
 				{/* ACTIONS */}

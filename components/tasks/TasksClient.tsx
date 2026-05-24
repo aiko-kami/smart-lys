@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import type { Task, Client, Apartment } from "@/types";
+import type { Task, Client, Apartment, Reservation } from "@/types";
 import { splitTasks } from "@/utils/taskUtils";
 import TasksTodayCard from "@/components/tasks/TasksTodayCard";
 import UpcomingTasksCard from "@/components/tasks/UpcomingTasksCard";
@@ -11,8 +11,9 @@ import TasksCalendarCard from "@/components/tasks/TasksCalendarCard";
 
 import TaskDetailsModal from "@/components/tasks/TaskDetailsModal";
 import TaskFormModal from "@/components/tasks/TaskFormModal";
+import DeleteTaskModal from "@/components/tasks/DeleteTaskModal";
 
-export default function TasksClient({ tasks: initial, clients, apartments }: { tasks: Task[]; clients: Client[]; apartments: Apartment[] }) {
+export default function TasksClient({ tasks: initial, clients, apartments, reservations }: { tasks: Task[]; clients: Client[]; apartments: Apartment[]; reservations: Reservation[] }) {
 	const [tasks, setTasks] = useState(initial);
 	const [allClients] = useState<Client[]>(clients);
 	const [search, setSearch] = useState("");
@@ -82,6 +83,7 @@ export default function TasksClient({ tasks: initial, clients, apartments }: { t
 			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		}
 	}
+
 	async function handleDeleteConfirm() {
 		if (!deleteModal) return;
 
@@ -154,31 +156,12 @@ export default function TasksClient({ tasks: initial, clients, apartments }: { t
 					onSave={handleSave}
 					clients={clients}
 					apartments={apartments}
+					reservations={reservations}
 				/>
 			)}
 
 			{/* DELETE MODAL */}
-			{deleteModal && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-					<div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#111827] p-6">
-						<h2 className="text-lg font-semibold">Supprimer la tâche</h2>
-
-						<p className="mt-2 text-sm text-gray-400">
-							Êtes-vous sûr de vouloir supprimer <span className="font-medium text-white">{deleteModal.title}</span> ?
-						</p>
-
-						<div className="mt-6 flex gap-3">
-							<button onClick={() => setDeleteModal(null)} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm text-gray-300 transition hover:bg-white/10">
-								Annuler
-							</button>
-
-							<button onClick={handleDeleteConfirm} disabled={deleting} className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-medium text-white transition hover:bg-red-500 disabled:opacity-50">
-								{deleting ? "Suppression..." : "Supprimer"}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			{deleteModal && <DeleteTaskModal task={deleteModal} deleting={deleting} onConfirm={handleDeleteConfirm} onClose={() => setDeleteModal(null)} />}
 		</div>
 	);
 }

@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import ApartmentFormModal from "./ApartmentFormModal";
 import DeleteApartmentModal from "./DeleteApartmentModal";
 import ApartmentDetailsModal from "./ApartmentDetailsModal";
-import PlatformIcon from "@/components/ui/PlatformIcon";
+import { PlatformIcon } from "@/components/ui/PlatformIcon";
 import StatusBadge from "@/components/ui/StatusBadge";
 import type { Apartment, ApartmentsClientProps, ClientRef } from "@/types";
 import type { Platform } from "@/types";
@@ -53,8 +53,6 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 	);
 
 	async function handleSave(data: Partial<Apartment>) {
-		console.log("🚀 ~ handleSave ~ data:", data);
-
 		setError(null);
 		try {
 			if (editing && editing !== "new") {

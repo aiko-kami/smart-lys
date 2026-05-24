@@ -39,6 +39,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 			delete update.apartmentId;
 		}
 
+		// reservationId
+		if (!update.reservationId) {
+			unset.reservationId = 1;
+			delete update.reservationId;
+		}
+
 		// si on a des champs à unset → on les ajoute
 		if (Object.keys(unset).length > 0) {
 			update.$unset = unset;
@@ -50,6 +56,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 		})
 			.populate("apartmentId", "name")
 			.populate("clientId", "name")
+			.populate("reservationId", "guestName checkIn checkOut")
 			.lean();
 
 		return NextResponse.json(updated);

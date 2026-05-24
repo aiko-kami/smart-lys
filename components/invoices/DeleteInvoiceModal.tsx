@@ -59,7 +59,7 @@ export default function DeleteInvoiceModal({ invoice, deleting, onConfirm, onCan
 						Annuler
 					</button>
 
-					<button onClick={onConfirm} disabled={deleting} className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50">
+					<button onClick={onConfirm} disabled={deleting} className="flex-1 rounded-xl bg-red-700 py-2.5 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50">
 						{deleting ? "Suppression..." : "Supprimer"}
 					</button>
 				</div>

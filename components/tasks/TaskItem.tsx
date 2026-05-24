@@ -1,6 +1,6 @@
 "use client";
 
-import { FaRegClock, FaLocationDot } from "react-icons/fa6";
+import { FaRegClock, FaLocationDot, FaCalendar } from "react-icons/fa6";
 
 import type { Task } from "@/types";
 import { formatDate, formatMinutes } from "@/utils";
@@ -23,6 +23,7 @@ export default function TaskItem({ task, onClick }: Props) {
 	const TypeIcon = config.icon;
 
 	const apartment = typeof task.apartmentId === "object" ? task.apartmentId : null;
+	const reservation = typeof task.reservationId === "object" ? task.reservationId : null;
 
 	return (
 		<div onClick={onClick} className="py-2 sm:p-4 flex items-center justify-between hover:bg-muted/30 transition cursor-pointer">
@@ -33,7 +34,7 @@ export default function TaskItem({ task, onClick }: Props) {
 				<div>
 					<h3 className="font-medium text-white">{task.title}</h3>
 
-					<div className="sm:flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+					<div className="sm:flex items-center gap-3 mt-1 text-sm text-muted-foreground">
 						{task.duration != null && task.duration != 0 && (
 							<div className="flex items-center gap-1 text-gray-400">
 								<FaRegClock className="text-sm" />
@@ -45,6 +46,13 @@ export default function TaskItem({ task, onClick }: Props) {
 							<div className="flex items-center gap-1 text-violet-300">
 								<FaLocationDot className="text-sm" />
 								<span>{apartment.name}</span>
+							</div>
+						)}
+
+						{reservation && (
+							<div className="flex items-center gap-1 text-sky-300">
+								<FaCalendar className="text-sm" />
+								<span>{reservation.guestName}</span>
 							</div>
 						)}
 					</div>

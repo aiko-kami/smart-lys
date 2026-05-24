@@ -17,9 +17,23 @@ interface Props {
 
 	onApartmentsChange: (ids: string[]) => void;
 	onPlatformsChange: (platforms: string[]) => void;
+	onSelectedReservationChange: (reservation: Reservation | null) => void;
+	onShowReservationDetails: (reservation: Reservation) => void;
+	onModifyReservation: (reservation: Reservation) => void;
 }
 
-export default function ReservationsSidebar({ apartments, reservations, selectedReservation, selectedApartments, selectedPlatforms, onApartmentsChange, onPlatformsChange }: Props) {
+export default function ReservationsSidebar({
+	apartments,
+	reservations,
+	selectedReservation,
+	selectedApartments,
+	selectedPlatforms,
+	onApartmentsChange,
+	onPlatformsChange,
+	onSelectedReservationChange,
+	onShowReservationDetails,
+	onModifyReservation,
+}: Props) {
 	return (
 		<div className="space-y-6">
 			<ReservationsFilters
@@ -30,7 +44,7 @@ export default function ReservationsSidebar({ apartments, reservations, selected
 				onPlatformsChange={onPlatformsChange}
 			/>
 
-			<SelectedReservationCard selectedReservation={selectedReservation} />
+			<SelectedReservationCard selectedReservation={selectedReservation} onShowDetails={onShowReservationDetails} onModify={onModifyReservation} onClose={() => onSelectedReservationChange(null)} />
 
 			<TodayActivities reservations={reservations} />
 

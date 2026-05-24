@@ -36,6 +36,10 @@ export default function TaskDetailsModal({ task, onClose, onEdit, onDelete }: Ta
 
 	const apartmentName = typeof task.apartmentId === "object" ? task.apartmentId?.name : null;
 
+	const reservationguestName = typeof task.reservationId === "object" ? task.reservationId?.guestName : null;
+	const reservationCheckIn = typeof task.reservationId === "object" ? task.reservationId?.checkIn : null;
+	const reservationCheckOut = typeof task.reservationId === "object" ? task.reservationId?.checkOut : null;
+
 	const clientName = typeof task.clientId === "object" ? task.clientId?.name : null;
 
 	const dueDateDanger = isOverdue(task.dueDate);
@@ -115,6 +119,24 @@ export default function TaskDetailsModal({ task, onClose, onEdit, onDelete }: Ta
 								<LuBuilding size={13} /> Appartement
 							</span>
 							<span>{apartmentName ?? "—"}</span>
+						</div>
+
+						<div className="flex justify-between border-b border-white/5 py-2">
+							<span className="text-gray-500 flex items-center gap-1">
+								<LuUser size={13} /> Réservation
+							</span>
+							{typeof task.reservationId === "object" ? (
+								<div>
+									{reservationguestName ? <div className="text-sm font-medium text-right">{reservationguestName}</div> : null}
+									{reservationCheckIn && reservationCheckOut ? (
+										<div className="text-xs text-gray-400">
+											{formatDate(reservationCheckIn)} au {formatDate(reservationCheckOut)}
+										</div>
+									) : null}
+								</div>
+							) : (
+								"—"
+							)}
 						</div>
 
 						<div className="flex justify-between border-b border-white/5 py-2">

@@ -15,6 +15,12 @@ export interface TaskApartment {
 	name: string;
 }
 
+export interface TaskReservation {
+	_id: string;
+	guestName?: string;
+	checkIn?: string;
+	checkOut?: string;
+}
 export interface Task {
 	_id: string;
 	title: string;
@@ -22,6 +28,7 @@ export interface Task {
 	type: TaskType;
 	apartmentId?: string | TaskApartment | null;
 	clientId?: string | TaskClient | null;
+	reservationId?: string | TaskReservation | null;
 	dueDate: string;
 	startDate?: string;
 	duration?: number;

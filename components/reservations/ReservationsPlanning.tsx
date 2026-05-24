@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import PlatformIcon from "@/components/ui/PlatformIcon";
+import { PlatformIcon } from "@/components/ui/PlatformIcon";
 import type { Apartment, Reservation } from "@/types";
+import { PLATFORMS } from "@/utils/constants";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -10,6 +11,7 @@ interface Props {
 	reservations: Reservation[];
 	apartments: Apartment[];
 	onReservationClick: (reservation: Reservation) => void;
+	onReservationDoubleClick: (reservation: Reservation) => void;
 }
 
 type View = "day" | "week" | "2weeks" | "month";
@@ -49,6 +51,15 @@ function colMinWidth(v: View) {
 	return { day: 160, week: 110, "2weeks": 80, month: 52 }[v];
 }
 
+function getPlatformStyle(platform?: string) {
+	const match = PLATFORMS.find((p) => p.value === platform);
+	return {
+		bg: match?.bg ?? "rgba(255,255,255,0.08)",
+		color: match?.color ?? "#888",
+		label: match?.label ?? "Autre",
+	};
+}
+
 // Checkout day: banner covers only the first third (morning departure).
 const CHECKOUT_FRACTION = 0.48;
 // Checkin day:  banner starts at 45% into the column (just under half).
@@ -75,6 +86,8 @@ function getSpan(
 	checkoutIdx: number;
 	startsHere: boolean;
 	endsHere: boolean;
+	startsBeforeView: boolean;
+	endsAfterView: boolean;
 } | null {
 	const checkIn = midnight(new Date(r.checkIn));
 	const checkOut = midnight(new Date(r.checkOut));
@@ -108,6 +121,8 @@ function getSpan(
 			checkoutIdx,
 			startsHere: false,
 			endsHere: false,
+			startsBeforeView: true,
+			endsAfterView: false,
 		};
 	}
 
@@ -118,14 +133,14 @@ function getSpan(
 		checkoutIdx,
 		startsHere: sameDay(days[colStart], checkIn),
 		endsHere: colSpan > 0 && sameDay(days[colStart + colSpan - 1], addDays(checkOut, -1)),
+		startsBeforeView: checkIn < days[0],
+		endsAfterView: checkOut > addDays(days[days.length - 1], 1),
 	};
 }
 
 // ─── day header cell ──────────────────────────────────────────────────────────
 
 function DayHeader({ day, view, isToday }: { day: Date; view: View; isToday: boolean }) {
-	const isWknd = isWeekend(day);
-
 	const label =
 		view === "month"
 			? day.toLocaleDateString("fr-FR", { day: "2-digit" })
@@ -136,7 +151,6 @@ function DayHeader({ day, view, isToday }: { day: Date; view: View; isToday: boo
 	return (
 		<div
 			className={`flex flex-col items-center justify-center py-2 text-center text-[11px] font-medium
-				${isWknd ? "text-gray-600" : "text-gray-400"}
 				${isToday ? "!text-violet-400 font-semibold" : ""}
 			`}
 		>
@@ -169,6 +183,7 @@ function ApartmentRow({
 	view,
 	today,
 	onReservationClick,
+	onReservationDoubleClick,
 }: {
 	apartment: Apartment;
 	days: Date[];
@@ -176,6 +191,7 @@ function ApartmentRow({
 	view: View;
 	today: Date;
 	onReservationClick: (r: Reservation) => void;
+	onReservationDoubleClick: (r: Reservation) => void;
 }) {
 	const N = days.length;
 
@@ -194,6 +210,8 @@ function ApartmentRow({
 			checkoutIdx: number;
 			startsHere: boolean;
 			endsHere: boolean;
+			startsBeforeView: boolean;
+			endsAfterView: boolean;
 		}>;
 	}, [reservations, days]);
 
@@ -202,7 +220,7 @@ function ApartmentRow({
 	return (
 		<div className="flex border-b border-white/20 last:border-0">
 			{/* apartment label */}
-			<div className="sticky left-0 z-30 flex w-[180px] shrink-0 items-center gap-2.5 border-r border-white/20 bg-[#0F1117] px-3 py-2">
+			<div className="sticky left-0 z-30 flex w-[180px] shrink-0 items-center gap-2.5 border-r border-white/20 bg-[#111827] px-3 py-2">
 				<img
 					src={apartment.image}
 					onError={(e) => {
@@ -216,7 +234,7 @@ function ApartmentRow({
 
 			{/* grid */}
 			<div
-				className="relative min-h-[52px] flex-1"
+				className="relative min-h-[52px] flex-1 bg-[#0F1117]"
 				style={{
 					display: "grid",
 					gridTemplateColumns: `repeat(${N}, minmax(${colMinWidth(view)}px, 1fr))`,
@@ -224,7 +242,7 @@ function ApartmentRow({
 			>
 				{/* background cells */}
 				{days.map((d, i) => (
-					<div key={isoDate(d)} className={`border-r border-white/20 ${isWeekend(d) ? "bg-white/[0.015]" : ""} ${sameDay(d, today) ? "bg-violet-500/[0.04]" : ""}`} />
+					<div key={isoDate(d)} className={`border-r border-white/20 ${sameDay(d, today) ? "bg-violet-500/[0.04]" : ""}`} />
 				))}
 
 				{/* today vertical highlight */}
@@ -241,7 +259,7 @@ function ApartmentRow({
 				)}
 
 				{/* reservation banners */}
-				{spans.map(({ r, colStart, colSpan, checkoutInView, startsHere, endsHere }) => {
+				{spans.map(({ r, colStart, colSpan, checkoutInView, startsHere, endsHere, startsBeforeView, endsAfterView }) => {
 					// Checkin starts at the last third of its column (afternoon arrival)
 					const checkinShift = startsHere ? CHECKIN_OFFSET : 0;
 
@@ -255,16 +273,19 @@ function ApartmentRow({
 					const width = `calc(${(effectiveCols / N) * 100}% - ${GAP * 2}px)`;
 
 					const incomplete = !r.guestName || !r.totalAmount;
+					const platformStyle = getPlatformStyle(r.platform);
 
 					return (
 						<button
 							key={r._id}
 							onClick={() => onReservationClick(r)}
+							onDoubleClick={() => onReservationDoubleClick(r)}
 							title={r.guestName ?? "À compléter"}
-							style={{ left, width }}
+							style={{ left, width, backgroundColor: platformStyle.bg }}
 							className={`group absolute inset-y-[7px] z-20 flex items-center overflow-hidden px-2.5 text-left transition-opacity hover:opacity-80
-		${startsHere ? "rounded-l-md" : ""}
-		rounded-r-md
+	${startsBeforeView ? "rounded-l-none border-l-0" : "rounded-l-md"}
+${endsAfterView ? "rounded-r-none border-r-0" : "rounded-r-md"}
+	border border-white/20
 		${incomplete ? "border border-amber-500/50 bg-amber-700/90 text-amber-100" : "border border-violet-500/50 bg-violet-700/90 text-violet-200"}
 	`}
 						>
@@ -302,7 +323,7 @@ const VIEW_LABELS: Record<View, string> = {
 	month: "Mois",
 };
 
-export default function ReservationsPlanning({ reservations = [], apartments = [], onReservationClick }: Props) {
+export default function ReservationsPlanning({ reservations = [], apartments = [], onReservationClick, onReservationDoubleClick }: Props) {
 	const [view, setView] = useState<View>("week");
 	const [offset, setOffset] = useState(0); // in units of viewLength
 
@@ -328,7 +349,7 @@ export default function ReservationsPlanning({ reservations = [], apartments = [
 	}, [days, view]);
 
 	return (
-		<div className="flex flex-col rounded-2xl border border-white/10 bg-[#0F1117] overflow-hidden">
+		<div className="flex flex-col rounded-2xl border border-white/10 bg-[#111827] overflow-hidden">
 			{/* ── TOOLBAR ── */}
 			<div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/20 px-5 py-3">
 				{/* left: nav */}
@@ -370,9 +391,9 @@ export default function ReservationsPlanning({ reservations = [], apartments = [
 			<div className="overflow-x-auto">
 				<div style={{ minWidth: 180 + viewLength(view) * colMinWidth(view) }}>
 					{/* header row */}
-					<div className="sticky top-0 z-30 flex border-b border-white/20 bg-[#0F1117]">
+					<div className="sticky top-0 z-30 flex border-b border-white/20 bg-[#111827]">
 						{/* label spacer */}
-						<div className="sticky left-0 z-40 w-[180px] shrink-0 border-r border-white/20 bg-[#0F1117] px-3 py-2 text-[10px] uppercase tracking-widest text-gray-600">Logement</div>
+						<div className="sticky left-0 z-40 w-[180px] shrink-0 border-r border-white/20 bg-[#111827] px-3 py-2 text-[10px] uppercase tracking-widest text-gray-600">Logement</div>
 						{/* day headers */}
 						<div
 							className="flex-1"
@@ -394,11 +415,21 @@ export default function ReservationsPlanning({ reservations = [], apartments = [
 							key={apt._id}
 							apartment={apt}
 							days={days}
-							reservations={reservations.filter((r) => String(r.apartmentId) === apt._id)}
+							reservations={reservations.filter((r) => String(r.apartmentId._id) === apt._id)}
 							view={view}
 							today={today}
 							onReservationClick={onReservationClick}
+							onReservationDoubleClick={onReservationDoubleClick}
 						/>
+					))}
+				</div>
+				{/* LEGEND */}
+				<div className="flex flex-wrap gap-3 border-t border-white/10 px-4 py-3 text-[11px] text-gray-300">
+					{PLATFORMS.map((p) => (
+						<div key={p.value} className="flex items-center gap-1.5">
+							<span className="h-4 w-5 rounded-sm" style={{ background: p.bg }} />
+							<span>{p.label}</span>
+						</div>
 					))}
 				</div>
 			</div>

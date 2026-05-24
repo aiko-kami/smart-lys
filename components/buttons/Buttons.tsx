@@ -2,6 +2,7 @@
 
 import { ButtonHTMLAttributes, ReactNode } from "react";
 import { LuTrash2, LuPencil } from "react-icons/lu";
+import { IoEyeOutline } from "react-icons/io5";
 
 type ButtonColor = "gray" | "blue" | "green" | "red" | "pink" | "orange" | "yellow" | "gradientBluePurple" | "gradientPurplePink" | "grayOutline";
 
@@ -30,6 +31,7 @@ interface ButtonActionsProps {
 	btnSize?: ButtonSize;
 	action?: () => void;
 	disabled?: boolean;
+	iconOnly?: boolean;
 }
 
 /* ─────────────────────────────────────────────
@@ -271,9 +273,9 @@ export function ButtonCircle({ children, btnSize = "std", btnColor = "blue", act
    ACTIONS BUTTONS
 ──────────────────────────────────────────── */
 
-export function RemoveButton({ btnSize = "std", action = () => {}, disabled = false }: ButtonActionsProps) {
+export function RemoveButton({ btnSize = "std", action = () => {}, disabled = false, iconOnly = false }: ButtonActionsProps) {
 	const sizeMap: Record<ButtonSize, string> = {
-		xs: "text-xs py-1.5 px-3 rounded-lg",
+		xs: "text-xs py-1.5 px-1.5 rounded-lg",
 		sm: "text-sm py-2 px-2 rounded-lg",
 		std: "text-base py-2 px-2 rounded-lg",
 		lg: "text-lg py-2 px-2 rounded-lg",
@@ -293,16 +295,20 @@ export function RemoveButton({ btnSize = "std", action = () => {}, disabled = fa
 	};
 
 	return (
-		<button onClick={action} disabled={disabled} className={["flex items-center gap-1.5 text-red-400 border border-red-500/20 transition hover:bg-red-500/10", sizeMap[btnSize]].join(" ")}>
+		<button
+			onClick={action}
+			disabled={disabled}
+			className={["flex w-full items-center justify-center gap-1.5 text-red-400 bg-red-600/10 border border-red-500/20 transition hover:bg-red-500/20", sizeMap[btnSize]].join(" ")}
+		>
 			<LuTrash2 size={sizeIconMap[btnSize]} />
-			Supprimer
+			{!iconOnly && "Supprimer"}
 		</button>
 	);
 }
 
-export function EditButton({ btnSize = "std", action = () => {}, disabled = false }: ButtonActionsProps) {
+export function EditButton({ btnSize = "std", action = () => {}, disabled = false, iconOnly = false }: ButtonActionsProps) {
 	const sizeMap: Record<ButtonSize, string> = {
-		xs: "text-xs py-1.5 px-3 rounded-lg",
+		xs: "text-xs py-1.5 px-1.5 rounded-lg",
 		sm: "text-sm py-2 px-2 rounded-lg",
 		std: "text-base py-2 px-2 rounded-lg",
 		lg: "text-lg py-2 px-2 rounded-lg",
@@ -322,9 +328,68 @@ export function EditButton({ btnSize = "std", action = () => {}, disabled = fals
 	};
 
 	return (
-		<button onClick={action} disabled={disabled} className={["flex items-center gap-1.5 text-gray-200 border border-white/10 bg-white/5 transition hover:bg-white/10", sizeMap[btnSize]].join(" ")}>
+		<button
+			onClick={action}
+			disabled={disabled}
+			className={["flex w-full items-center justify-center gap-1.5 text-violet-400 bg-violet-600/10 border border-violet-500/20 transition hover:bg-violet-500/20", sizeMap[btnSize]].join(" ")}
+		>
 			<LuPencil size={sizeIconMap[btnSize]} />
-			Éditer
+			{!iconOnly && "Éditer"}
+		</button>
+	);
+}
+
+export function CloseButton({ btnSize = "std", action = () => {}, disabled = false, iconOnly = false }: ButtonActionsProps) {
+	const sizeMap: Record<ButtonSize, string> = {
+		xs: "text-xs py-1.5 px-1.5 rounded-lg",
+		sm: "text-sm py-2 px-2 rounded-lg",
+		std: "text-base py-2 px-2 rounded-lg",
+		lg: "text-lg py-2 px-2 rounded-lg",
+		xl: "text-xl py-2 px-2 rounded-xl",
+		"2xl": "text-2xl py-2 px-2 rounded-xl",
+		"3xl": "text-3xl py-2 px-2 rounded-xl",
+	};
+
+	return (
+		<button
+			onClick={action}
+			disabled={disabled}
+			className={["flex w-full items-center justify-center gap-1.5 text-gray-400 bg-gray-600/10 border border-gray-500/20 transition hover:bg-gray-500/20", sizeMap[btnSize]].join(" ")}
+		>
+			{!iconOnly && "Fermer"}
+		</button>
+	);
+}
+
+export function ViewButton({ btnSize = "std", action = () => {}, disabled = false, iconOnly = false }: ButtonActionsProps) {
+	const sizeMap: Record<ButtonSize, string> = {
+		xs: "text-xs py-1.5 px-1.5 rounded-lg",
+		sm: "text-sm py-2 px-2 rounded-lg",
+		std: "text-base py-2 px-2 rounded-lg",
+		lg: "text-lg py-2 px-2 rounded-lg",
+		xl: "text-xl py-2 px-2 rounded-xl",
+		"2xl": "text-2xl py-2 px-2 rounded-xl",
+		"3xl": "text-3xl py-2 px-2 rounded-xl",
+	};
+
+	const sizeIconMap: Record<ButtonSize, number> = {
+		xs: 14,
+		sm: 14,
+		std: 16,
+		lg: 18,
+		xl: 20,
+		"2xl": 22,
+		"3xl": 24,
+	};
+
+	return (
+		<button
+			onClick={action}
+			disabled={disabled}
+			className={["flex w-full items-center justify-center gap-1.5 text-emerald-400 bg-emerald-600/10 border border-emerald-500/20 transition hover:bg-emerald-500/20", sizeMap[btnSize]].join(" ")}
+		>
+			<IoEyeOutline size={sizeIconMap[btnSize]} />
+			{!iconOnly && "Voir"}
 		</button>
 	);
 }

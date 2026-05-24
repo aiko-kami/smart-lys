@@ -5,7 +5,7 @@ import { FaXmark } from "react-icons/fa6";
 
 import Modal from "@/components/ui/Modal";
 import StatusBadge from "@/components/ui/StatusBadge";
-import PlatformIcon from "@/components/ui/PlatformIcon";
+import { PlatformIcon } from "@/components/ui/PlatformIcon";
 import { ApartmentDetailsModalProps } from "@/types/modal";
 import { RemoveButton, EditButton } from "@/components/buttons/Buttons";
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
-import { registerModels, getTaskModel, getApartmentModel, getClientModel } from "@/lib/models";
+import { registerModels, getTaskModel, getApartmentModel, getClientModel, getReservationModel } from "@/lib/models";
 
 // ─────────────────────────────────────────────
 // GET all tasks
@@ -15,8 +15,9 @@ export async function GET() {
 	// optionnel: si tu veux populate relations
 	getApartmentModel(conn);
 	getClientModel(conn);
+	getReservationModel(conn);
 
-	const tasks = await Task.find().populate("apartmentId", "name").populate("clientId", "name").sort({ dueDate: 1 }).lean();
+	const tasks = await Task.find().populate("apartmentId", "name").populate("clientId", "name").populate("reservationId", "guestName", "checkIn", "checkOut").sort({ dueDate: 1 }).lean();
 
 	return NextResponse.json(JSON.parse(JSON.stringify(tasks)));
 }
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
 		const populated = await task.populate([
 			{ path: "apartmentId", select: "name" },
 			{ path: "clientId", select: "name" },
+			{ path: "reservationId", select: "guestName checkIn checkOut" },
 		]);
 
 		return NextResponse.json(JSON.parse(JSON.stringify(populated)), { status: 201 });

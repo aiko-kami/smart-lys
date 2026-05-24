@@ -7,6 +7,7 @@ const TaskSchema = new Schema(
 		type: { type: String, enum: ["cleaning", "checkin", "checkout", "maintenance", "inspection", "chloe", "amy", "adrian", "other"], default: "other" },
 		apartmentId: { type: Schema.Types.ObjectId, ref: "Apartment", required: false },
 		clientId: { type: Schema.Types.ObjectId, ref: "Client", required: false },
+		reservationId: { type: Schema.Types.ObjectId, ref: "Reservation", required: false },
 		dueDate: { type: Date, required: true },
 		startDate: { type: Date },
 		duration: { type: Number },

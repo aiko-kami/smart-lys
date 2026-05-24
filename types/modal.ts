@@ -2,6 +2,7 @@ import type { Client } from "./client";
 import type { Apartment } from "./apartment";
 import type { Invoice } from "./invoice";
 import type { Task } from "./task";
+import type { Reservation, ReservationPayload } from "./reservation";
 
 // ── Client delete modal ───────────────────────────────
 
@@ -77,4 +78,42 @@ export interface TaskFormModalProps {
 	onSave: (data: Partial<Task>) => Promise<void>;
 	clients: Client[];
 	apartments: Apartment[];
+	reservations: Reservation[];
+}
+
+// ── Task delete modal ────────────────────────────
+
+export interface DeleteTaskModalProps {
+	task: Task;
+	deleting: boolean;
+	onConfirm: () => void;
+	onClose: () => void;
+}
+
+// ── Reservation details modal ───────────────────────────
+
+export interface ReservationDetailsModalProps {
+	reservation: Reservation | null;
+	onClose: () => void;
+	onEdit: (reservation: Reservation) => void;
+	onDelete: (reservation: Reservation) => void;
+}
+
+// ── Reservation form modal ─────────────────────────────
+
+export interface ReservationFormModalProps {
+	reservation: Reservation | null;
+	onClose: () => void;
+	onSave: (data: ReservationPayload) => Promise<void>;
+	apartments: Apartment[];
+	clients: Client[];
+}
+
+// ── Reservation delete modal ────────────────────────────
+
+export interface DeleteReservationModalProps {
+	reservation: Reservation;
+	deleting: boolean;
+	onConfirm: () => void;
+	onClose: () => void;
 }

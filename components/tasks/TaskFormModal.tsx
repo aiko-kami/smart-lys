@@ -5,13 +5,14 @@ import { FaXmark } from "react-icons/fa6";
 
 import Modal from "@/components/ui/Modal";
 import Field from "@/components/ui/Field";
+import { formatDate } from "@/utils";
 
 import type { Task } from "@/types";
 import type { TaskFormModalProps } from "@/types/modal";
 
 import { INPUT_CLASS } from "@/utils";
 
-export default function TaskFormModal({ task, onClose, onSave, clients = [], apartments = [] }: TaskFormModalProps) {
+export default function TaskFormModal({ task, onClose, onSave, clients = [], apartments = [], reservations = [] }: TaskFormModalProps) {
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -27,6 +28,7 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 		duration: task?.duration ?? 0,
 		clientId: typeof task?.clientId === "object" ? task.clientId?._id : (task?.clientId ?? ""),
 		apartmentId: typeof task?.apartmentId === "object" ? task.apartmentId?._id : (task?.apartmentId ?? ""),
+		reservationId: typeof task?.reservationId === "object" ? task.reservationId?._id : (task?.reservationId ?? ""),
 	});
 
 	useEffect(() => {
@@ -85,6 +87,11 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 		return clientId === form.clientId;
 	});
 
+	const filteredReservations = (reservations ?? []).filter((reservation) => {
+		const apartmentId = typeof reservation.apartmentId === "object" ? reservation.apartmentId?._id : reservation.apartmentId;
+		return apartmentId === form.apartmentId;
+	});
+
 	return (
 		<Modal open={true} onClose={onClose} closeOnBackdrop={false}>
 			<div className="w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F172A] p-6 sm:min-w-2xl">
@@ -101,7 +108,7 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 				{error && <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">{error}</div>}
 
 				{/* FORM */}
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSubmit} className="space-y-5">
 					{/* Title */}
 					<Field label="Titre *">
 						<input required type="text" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Nettoyage appartement" className={INPUT_CLASS} />
@@ -143,7 +150,13 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 							</select>
 						</Field>
 						<Field label="Durée (minutes)">
-							<input type="number" value={form.duration} onChange={(e) => set("duration", Number(e.target.value))} placeholder="90" className={INPUT_CLASS} />
+							<input
+								type="number"
+								value={form.duration}
+								onChange={(e) => set("duration", Number(e.target.value))}
+								placeholder="90"
+								className={`${INPUT_CLASS} [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+							/>
 						</Field>
 					</div>
 
@@ -159,7 +172,7 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 					</div>
 
 					{/* Client + Appartement */}
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 						<Field label="Client">
 							<select
 								value={form.clientId}
@@ -186,6 +199,18 @@ export default function TaskFormModal({ task, onClose, onSave, clients = [], apa
 								{filteredApartments.map((apartment) => (
 									<option key={apartment._id} value={apartment._id}>
 										{apartment.name}
+									</option>
+								))}
+							</select>
+						</Field>
+
+						<Field label="Reservation">
+							<select value={form.reservationId} onChange={(e) => set("reservationId", e.target.value)} className={INPUT_CLASS} disabled={!form.clientId}>
+								<option value="">Sélectionner une réservation</option>
+
+								{filteredReservations.map((reservation) => (
+									<option key={reservation._id} value={reservation._id}>
+										{reservation.guestName} - {formatDate(reservation.checkIn)} au {formatDate(reservation.checkOut)}
 									</option>
 								))}
 							</select>
