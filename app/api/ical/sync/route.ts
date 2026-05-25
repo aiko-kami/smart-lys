@@ -1,0 +1,77 @@
+import { NextResponse } from "next/server";
+
+import { connectDB } from "@/lib/mongodb";
+import { registerModels, getApartmentModel, getReservationModel } from "@/lib/models";
+
+import { syncApartmentIcal } from "@/lib/ical";
+
+export async function POST() {
+	try {
+		const conn = await connectDB();
+		registerModels(conn);
+
+		const Apartment = getApartmentModel(conn);
+		const Reservation = getReservationModel(conn);
+
+		const apartments = await Apartment.find({
+			airbnbIcalUrl: { $ne: "" },
+		}).lean();
+
+		let totalSynced = 0;
+		let totalErrors = 0;
+
+		const results: any[] = [];
+
+		for (const apartment of apartments) {
+			console.log("🔄 Sync iCal:", apartment.name);
+
+			const result = await syncApartmentIcal(Reservation, apartment);
+
+			results.push(result);
+
+			// comptage sync
+			if (Array.isArray(result.synced)) {
+				totalSynced += result.synced.length;
+			}
+
+			// comptage erreurs (seulement vraies erreurs)
+			if (result.error && result.error !== "NO_URL") {
+				totalErrors += 1;
+			}
+		}
+
+		const successMessages = results.filter((r) => !r.error).map((r) => r.message);
+
+		const errorMessages = results.filter((r) => r.error).map((r) => r.message);
+
+		return NextResponse.json({
+			success: true,
+			summary: {
+				apartments: apartments.length,
+				synced: totalSynced,
+				errors: totalErrors,
+			},
+			successMessages,
+			errorMessages,
+			results,
+		});
+	} catch (e) {
+		console.error("ICAL_SYNC_ERROR", e);
+
+		return NextResponse.json(
+			{
+				success: false,
+				error: "Sync failed",
+				summary: {
+					apartments: 0,
+					synced: 0,
+					errors: 1,
+				},
+				successMessages: [],
+				errorMessages: ["Erreur critique de synchronisation iCal"],
+				results: [],
+			},
+			{ status: 500 },
+		);
+	}
+}

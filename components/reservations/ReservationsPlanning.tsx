@@ -48,7 +48,10 @@ function viewLength(v: View) {
 }
 
 function colMinWidth(v: View) {
-	return { day: 160, week: 110, "2weeks": 80, month: 52 }[v];
+	if (v === "day") return 160;
+	if (v === "week") return typeof window !== "undefined" && window.innerWidth > 1440 ? 90 : 110;
+	if (v === "2weeks") return 80;
+	return 52;
 }
 
 function getPlatformStyle(platform?: string) {
@@ -423,15 +426,15 @@ export default function ReservationsPlanning({ reservations = [], apartments = [
 						/>
 					))}
 				</div>
-				{/* LEGEND */}
-				<div className="flex flex-wrap gap-3 border-t border-white/10 px-4 py-3 text-[11px] text-gray-300">
-					{PLATFORMS.map((p) => (
-						<div key={p.value} className="flex items-center gap-1.5">
-							<span className="h-4 w-5 rounded-sm" style={{ background: p.bg }} />
-							<span>{p.label}</span>
-						</div>
-					))}
-				</div>
+			</div>
+			{/* LEGEND */}
+			<div className="sticky bottom-0 z-30 flex flex-wrap gap-3 border-t border-white/10 px-4 py-3 text-[11px] text-gray-300">
+				{PLATFORMS.map((p) => (
+					<div key={p.value} className="flex items-center gap-1.5">
+						<span className="h-4 w-5 rounded-sm" style={{ background: p.bg }} />
+						<span>{p.label}</span>
+					</div>
+				))}
 			</div>
 		</div>
 	);

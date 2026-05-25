@@ -49,6 +49,7 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 	const [selectedReservationDetails, setSelectedReservationDetails] = useState<Reservation | null>(null);
 	const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 	const [icalModalOpen, setIcalModalOpen] = useState(false);
+	const [syncing, setSyncing] = useState(false);
 	const [deleteTarget, setDeleteTarget] = useState<Reservation | null>(null);
 	const [deleting, setDeleting] = useState(false);
 
@@ -81,6 +82,7 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 
 				const updated = await res.json();
 				toast.success("Réservation mise à jour");
+				setDetailsModalOpen(false);
 
 				setReservations((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
 			}
@@ -125,6 +127,37 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 		}
 	}
 
+	async function handleSyncIcal() {
+		setSyncing(true);
+
+		try {
+			const res = await fetch("/api/ical/sync", {
+				method: "POST",
+			});
+
+			const data = await res.json();
+
+			if (!res.ok || data.success === false) {
+				throw new Error(data?.error || "Sync failed");
+			}
+
+			// ── RESULTS (SOURCE UNIQUE DE VÉRITÉ) ──────────
+			if (Array.isArray(data.results)) {
+				data.results.forEach((r: any) => {
+					if (r.error) {
+						toast.error(`❌ ${r.message}`);
+					} else {
+						toast.success(`🏠 ${r.apartmentName}:\n${r.message}`);
+					}
+				});
+			}
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : "Erreur sync iCal");
+		} finally {
+			setSyncing(false);
+		}
+	}
+
 	// ── GLOBAL FILTERED DATA ───────────────
 
 	const filteredReservations = useMemo(() => {
@@ -144,7 +177,14 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 
 	return (
 		<div className="space-y-6">
-			<ReservationsHeader reservations={filteredReservations} onNewReservation={openCreateModal} onImportIcal={() => setIcalModalOpen(true)} />
+			<ReservationsHeader
+				reservations={filteredReservations}
+				apartments={visibleApartments}
+				onNewReservation={openCreateModal}
+				onImportIcal={() => setIcalModalOpen(true)}
+				onSyncIcal={handleSyncIcal}
+				syncing={syncing}
+			/>
 
 			<div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_340px]">
 				<div className="min-w-0 space-y-6">
