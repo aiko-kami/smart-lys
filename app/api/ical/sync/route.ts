@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
-import { registerModels, getApartmentModel, getReservationModel } from "@/lib/models";
+import { registerModels, getApartmentModel, getReservationModel, getSettingsModel } from "@/lib/models";
 
 import { syncApartmentIcal } from "@/lib/ical";
 
@@ -12,6 +12,7 @@ export async function POST() {
 
 		const Apartment = getApartmentModel(conn);
 		const Reservation = getReservationModel(conn);
+		const Settings = getSettingsModel(conn);
 
 		const apartments = await Apartment.find({
 			airbnbIcalUrl: { $ne: "" },
@@ -41,8 +42,24 @@ export async function POST() {
 		}
 
 		const successMessages = results.filter((r) => !r.error).map((r) => r.message);
-
 		const errorMessages = results.filter((r) => r.error).map((r) => r.message);
+		const hasErrors = totalErrors > 0;
+		const syncStatus = hasErrors ? "error" : "success";
+		const syncMessage = `${totalSynced} sync • ${totalErrors} erreur${totalErrors > 1 ? "s" : ""}`;
+
+		await Settings.updateOne(
+			{},
+			{
+				$set: {
+					"sync.lastAirbnbSyncAt": new Date(),
+					"sync.lastSyncedApartmentsCount": apartments.length,
+					"sync.lastSyncedReservationsCount": totalSynced,
+					"sync.lastAirbnbSyncStatus": syncStatus,
+					"sync.lastAirbnbSyncMessage": syncMessage,
+				},
+			},
+			{ upsert: true },
+		);
 
 		return NextResponse.json({
 			success: true,

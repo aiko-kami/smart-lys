@@ -4,4 +4,5 @@ export * from "./Reservation";
 export * from "./Task";
 export * from "./Invoice";
 export * from "./Payment";
+export * from "./Settings";
 export { registerModels } from "./registerModels";

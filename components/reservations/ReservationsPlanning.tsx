@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { PlatformIcon } from "@/components/ui/PlatformIcon";
 import type { Apartment, Reservation } from "@/types";
 import { PLATFORMS } from "@/utils/constants";

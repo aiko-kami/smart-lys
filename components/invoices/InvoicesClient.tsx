@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import toast from "react-hot-toast";
+import { FaCreditCard } from "react-icons/fa6";
 
 import type { Invoice, Client, Payment } from "@/types";
 import { formatDate } from "@/utils/invoice";
@@ -142,12 +143,17 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 						{invoices.length} facture{invoices.length > 1 ? "s" : ""}
 					</p>
 				</div>
-				<div className="flex flex-col items-end gap-2">
-					<button onClick={openCreate} className="rounded-xl bg-emerald-600 bg- px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-500">
-						+ Nouvelle facture
+
+				<div className="flex items-end gap-2">
+					<button
+						onClick={() => setPaymentModalOpen(true)}
+						className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm text-white transition hover:bg-white/10"
+					>
+						<FaCreditCard size={14} className="text-gray-300" />
+						Informations de paiement
 					</button>
-					<button onClick={() => setPaymentModalOpen(true)} className="text-right text-xs italic text-white hover:text-violet-500 cursor-pointer">
-						Mettre à jour les détails de paiement
+					<button onClick={openCreate} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500">
+						+ Nouvelle facture
 					</button>
 				</div>
 			</div>

@@ -3,6 +3,7 @@
 import type { Reservation, Apartment } from "@/types";
 import { FaArrowRotateRight } from "react-icons/fa6";
 import { useMemo } from "react";
+import { formatTimeAgo } from "@/utils/format";
 
 interface Props {
 	reservations: Reservation[];
@@ -11,6 +12,7 @@ interface Props {
 	onImportIcal: () => void;
 	onSyncIcal: () => void;
 	syncing: boolean;
+	sync: any;
 }
 
 function formatDate(date: Date | string) {
@@ -104,7 +106,7 @@ function getMonthRevenue(reservations: Reservation[], year: number, month: numbe
 	return Math.round(revenue);
 }
 
-export default function ReservationsHeader({ reservations, apartments, onNewReservation, onImportIcal, onSyncIcal, syncing }: Props) {
+export default function ReservationsHeader({ reservations, apartments, onNewReservation, onImportIcal, onSyncIcal, syncing, sync }: Props) {
 	const stats = useMemo(() => {
 		const now = new Date();
 		const year = now.getFullYear();
@@ -193,21 +195,26 @@ export default function ReservationsHeader({ reservations, apartments, onNewRese
 					</p>
 				</div>
 
-				<div className="flex flex-wrap gap-2">
-					<button onClick={onSyncIcal} disabled={syncing} className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm text-white hover:bg-white/10 disabled:opacity-50">
-						<div className="flex items-center gap-2">
-							{syncing ? "Synchronisation..." : "Synchroniser Airbnb"}
-							<FaArrowRotateRight className={`shrink-0 ${syncing ? "animate-spin" : ""}`} />
-						</div>
-					</button>
+				<div>
+					<div className="flex flex-wrap gap-2">
+						<button onClick={onSyncIcal} disabled={syncing} className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm text-white hover:bg-white/10 disabled:opacity-50">
+							<div className="flex items-center gap-2">
+								{syncing ? "Synchronisation..." : "Synchroniser Airbnb"}
+								<FaArrowRotateRight className={`shrink-0 ${syncing ? "animate-spin" : ""}`} />
+							</div>
+						</button>
 
-					<button onClick={onImportIcal} className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm text-white hover:bg-white/10">
-						Importer iCal
-					</button>
+						<button onClick={onImportIcal} className="rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm text-white hover:bg-white/10">
+							Importer iCal
+						</button>
 
-					<button onClick={onNewReservation} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500">
-						+ Nouvelle réservation
-					</button>
+						<button onClick={onNewReservation} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500">
+							+ Nouvelle réservation
+						</button>
+					</div>
+					<p className="mt-1 px-1 text-[11px] italic text-gray-500 ml-5">
+						Dernière sync <span className="text-gray-400">{formatTimeAgo(sync?.lastAirbnbSyncAt)}</span>
+					</p>
 				</div>
 			</div>
 

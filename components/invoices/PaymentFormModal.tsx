@@ -130,7 +130,7 @@ export default function PaymentFormModal({ open, payment, onClose, onSaved }: Pr
 							Annuler
 						</button>
 
-						<button type="submit" disabled={saving} className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50">
+						<button type="submit" disabled={saving} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50">
 							{saving ? "Enregistrement..." : "Enregistrer"}
 						</button>
 					</div>

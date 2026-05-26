@@ -41,3 +41,22 @@ export function formatMinutes(minutes: number) {
 
 	return `${remainingMinutes} min`;
 }
+
+export function formatTimeAgo(date: Date | string | null | undefined) {
+	if (!date) return "jamais";
+
+	const d = new Date(date);
+	if (isNaN(d.getTime())) return "jamais";
+
+	const now = new Date();
+	const diffMs = now.getTime() - d.getTime();
+
+	const diffMin = Math.floor(diffMs / 60000);
+	const diffHour = Math.floor(diffMin / 60);
+	const diffDay = Math.floor(diffHour / 24);
+
+	if (diffMin < 1) return "à l’instant";
+	if (diffMin < 60) return `il y a ${diffMin} min`;
+	if (diffHour < 24) return `il y a ${diffHour} h`;
+	return `il y a ${diffDay} jour${diffDay > 1 ? "s" : ""}`;
+}

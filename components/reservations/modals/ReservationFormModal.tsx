@@ -257,6 +257,20 @@ export default function ReservationFormModal({ reservation, onClose, onSave, cli
 	});
 
 	useEffect(() => {
+		if (!reservation?.apartmentId) return;
+
+		const apartmentId = typeof reservation.apartmentId === "object" ? reservation.apartmentId._id : reservation.apartmentId;
+
+		const apartment = apartments.find((a) => a._id === apartmentId);
+
+		if (!apartment) return;
+
+		const cId = typeof apartment.clientId === "object" ? apartment.clientId._id : apartment.clientId;
+
+		setClientId(cId);
+	}, [reservation, apartments]);
+
+	useEffect(() => {
 		if (!clientId) return;
 		const filtered = apartments.filter((a) => {
 			const cId = typeof a.clientId === "object" ? a.clientId?._id : a.clientId;

@@ -120,7 +120,7 @@ export default function TasksClient({ tasks: initial, clients, apartments, reser
 					<p className="mt-1 text-gray-400">Gérez les tâches et prestations à effectuer</p>
 				</div>
 
-				<button onClick={openCreate} className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500">
+				<button onClick={openCreate} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500">
 					+ Nouvelle tâche
 				</button>
 			</div>

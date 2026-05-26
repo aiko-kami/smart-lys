@@ -56,9 +56,6 @@ export async function syncApartmentIcal(Reservation: any, apartment: any) {
 		// ─────────────────────────────────────────
 		for (const event of events) {
 			const payload = mapIcalEventToReservation(event, apartment._id, "airbnb");
-
-			console.log("🚀 ~ syncApartmentIcal ~ payload:", payload);
-
 			const reservation = await Reservation.findOneAndUpdate(
 				{ icalUid: payload.icalUid },
 				{

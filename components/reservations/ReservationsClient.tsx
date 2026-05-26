@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 import type { Reservation, Apartment, Client } from "@/types";
@@ -17,6 +18,7 @@ interface Props {
 	reservations?: Reservation[];
 	apartments?: Apartment[];
 	clients?: Client[];
+	sync?: any;
 }
 
 type ReservationPayload = {
@@ -39,7 +41,9 @@ type ReservationPayload = {
 	nights: number;
 };
 
-export default function ReservationsClient({ reservations: initial = [], apartments = [], clients = [] }: Props) {
+export default function ReservationsClient({ reservations: initial = [], apartments = [], clients = [], sync }: Props) {
+	const router = useRouter();
+
 	const [reservations, setReservations] = useState<Reservation[]>(initial ?? []);
 	const [selectedApartments, setSelectedApartments] = useState<string[]>([]);
 	const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
@@ -85,6 +89,7 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 				setDetailsModalOpen(false);
 
 				setReservations((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
+				router.refresh();
 			}
 
 			// ─── CREATE ─────────────────────────────
@@ -105,6 +110,7 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 
 			setFormModalOpen(false);
 			setEditingReservation(null);
+			router.refresh();
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : "Une erreur est survenue");
 		}
@@ -124,6 +130,7 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 			toast.error(e instanceof Error ? e.message : "Une erreur est survenue");
 		} finally {
 			setDeleting(false);
+			router.refresh();
 		}
 	}
 
@@ -155,6 +162,7 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 			toast.error(e instanceof Error ? e.message : "Erreur sync iCal");
 		} finally {
 			setSyncing(false);
+			router.refresh();
 		}
 	}
 
@@ -184,6 +192,7 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 				onImportIcal={() => setIcalModalOpen(true)}
 				onSyncIcal={handleSyncIcal}
 				syncing={syncing}
+				sync={sync}
 			/>
 
 			<div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_340px]">
