@@ -5,7 +5,7 @@ export interface Reservation {
 		name: string;
 		image: string;
 		address: string;
-		clientId: string;
+		clientId: string | { _id: string; name: string };
 	};
 	guestName?: string;
 	guestEmail?: string;

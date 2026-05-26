@@ -58,7 +58,9 @@ export default function ReservationDetailsModal({ reservation: r, onClose, onEdi
 
 	const status = STATUS_META[r.status ?? "pending"] ?? STATUS_META.pending;
 	const nights = Math.round((new Date(r.checkOut).getTime() - new Date(r.checkIn).getTime()) / 86400000);
-	const apartment = typeof r.apartmentId === "object" ? r.apartmentId : null;
+
+	const apartment = typeof r.apartmentId === "object" && r.apartmentId !== null ? (r.apartmentId as any) : null;
+	const client = typeof apartment?.clientId === "object" ? apartment.clientId : null;
 
 	return (
 		<Modal open={true} onClose={onClose} closeOnBackdrop={true}>
@@ -114,7 +116,7 @@ export default function ReservationDetailsModal({ reservation: r, onClose, onEdi
 							<p className="text-[10px] mb-1.5 uppercase tracking-widest text-gray-600">Client</p>
 
 							<div className="flex flex-1 items-center justify-center">
-								<p className="truncate text-sm font-medium text-white">{typeof r.apartmentId === "object" && typeof r.apartmentId.clientId === "object" ? r.apartmentId.clientId.name : "—"}</p>
+								<p className="truncate text-sm font-medium text-white">{client?.name ?? "—"}</p>
 							</div>
 						</div>
 
