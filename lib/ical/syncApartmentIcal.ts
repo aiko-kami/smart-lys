@@ -2,38 +2,41 @@ import { fetchIcalEvents } from "./fetchIcalEvents";
 import { mapIcalEventToReservation } from "./mapIcalEventToReservation";
 
 /**
- * Convertit les codes d’erreur iCal en messages lisibles UI
+ * Convert iCal error codes into readable UI messages
  */
 function formatIcalError(code: string) {
 	switch (code) {
 		case "NO_URL":
 			return "Aucune URL iCal configurée";
-
 		case "INVALID_URL":
 			return "URL iCal invalide";
-
 		case "HTTP_404":
 			return "Lien iCal introuvable";
-
 		case "HTTP_403":
 			return "Accès refusé par le fournisseur iCal";
-
 		case "HTTP_500":
 			return "Erreur serveur iCal";
-
 		case "INVALID_ICAL_FORMAT":
 			return "Format iCal invalide";
-
 		default:
 			return "Erreur inconnue lors de la synchronisation iCal";
 	}
 }
 
-export async function syncApartmentIcal(Reservation: any, apartment: any) {
+export async function syncApartmentIcal(Reservation: any, Apartment: any, apartment: any) {
+	const now = new Date();
+
 	// ─────────────────────────────────────────
-	// 1. Pas d’URL
+	// 1. Pas d'URL
 	// ─────────────────────────────────────────
 	if (!apartment?.airbnbIcalUrl) {
+		await Apartment.findByIdAndUpdate(apartment?._id, {
+			$set: {
+				lastSyncAt: now,
+				lastSyncError: "NO_URL",
+			},
+		});
+
 		return {
 			apartmentId: apartment?._id,
 			apartmentName: apartment?.name,
@@ -50,12 +53,16 @@ export async function syncApartmentIcal(Reservation: any, apartment: any) {
 		const events = await fetchIcalEvents(apartment.airbnbIcalUrl, apartment.name);
 
 		const synced: any[] = [];
+		const seenUids = new Set<string>();
 
 		// ─────────────────────────────────────────
 		// 3. Upsert reservations
 		// ─────────────────────────────────────────
 		for (const event of events) {
 			const payload = mapIcalEventToReservation(event, apartment._id, "airbnb");
+
+			seenUids.add(payload.icalUid);
+
 			const reservation = await Reservation.findOneAndUpdate(
 				{ icalUid: payload.icalUid },
 				{
@@ -63,10 +70,11 @@ export async function syncApartmentIcal(Reservation: any, apartment: any) {
 						checkIn: payload.checkIn,
 						checkOut: payload.checkOut,
 						nights: payload.nights,
-						lastSyncAt: payload.lastSyncAt,
+						lastSyncAt: now,
 						platform: payload.platform,
+						missingFromSync: false,
+						missingFromSyncAt: null,
 					},
-
 					$setOnInsert: {
 						apartmentId: payload.apartmentId,
 						guestName: payload.guestName,
@@ -78,17 +86,49 @@ export async function syncApartmentIcal(Reservation: any, apartment: any) {
 						icalUid: payload.icalUid,
 					},
 				},
-				{
-					upsert: true,
-					returnDocument: "after",
-				},
+				{ upsert: true, returnDocument: "after" },
 			);
 
 			synced.push(reservation);
 		}
 
 		// ─────────────────────────────────────────
-		// 4. Success response
+		// 4. MARK: réservations absentes du flux iCal
+		// ─────────────────────────────────────────
+		// On ne touche qu'aux réservations importées avec un icalUid valide,
+		// non archivées, non déjà annulées, et absentes du flux cette fois-ci.
+		// On ne réécrit pas missingFromSyncAt si déjà flaggée (préserve la date initiale).
+		await Reservation.updateMany(
+			{
+				apartmentId: apartment._id,
+				platform: "airbnb",
+				isImported: true,
+				icalUid: { $nin: Array.from(seenUids), $ne: "" },
+				isArchived: { $ne: true },
+				status: { $ne: "cancelled" },
+				missingFromSync: { $ne: true },
+			},
+			{
+				$set: {
+					missingFromSync: true,
+					missingFromSyncAt: now,
+				},
+			},
+		);
+
+		// ─────────────────────────────────────────
+		// 5. Mise à jour de l'appartement
+		// ─────────────────────────────────────────
+		await Apartment.findByIdAndUpdate(apartment._id, {
+			$set: {
+				lastSyncAt: now,
+				lastSyncSuccessAt: now,
+				lastSyncError: null,
+			},
+		});
+
+		// ─────────────────────────────────────────
+		// 6. Success response
 		// ─────────────────────────────────────────
 		return {
 			apartmentId: apartment._id,
@@ -99,9 +139,16 @@ export async function syncApartmentIcal(Reservation: any, apartment: any) {
 		};
 	} catch (err: any) {
 		// ─────────────────────────────────────────
-		// 5. Error response propre et stable
+		// 7. Error response
 		// ─────────────────────────────────────────
-		const code = err?.code || err?.reason || "UNKNOWN_ERROR";
+		const code = err?.code || err?.reason || err?.message || "UNKNOWN_ERROR";
+
+		await Apartment.findByIdAndUpdate(apartment?._id, {
+			$set: {
+				lastSyncAt: now,
+				lastSyncError: code,
+			},
+		});
 
 		return {
 			apartmentId: apartment?._id,

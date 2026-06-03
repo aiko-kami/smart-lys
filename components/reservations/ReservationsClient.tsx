@@ -47,6 +47,7 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 	const [reservations, setReservations] = useState<Reservation[]>(initial ?? []);
 	const [selectedApartments, setSelectedApartments] = useState<string[]>([]);
 	const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+	const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 	const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
 	const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
 	const [formModalOpen, setFormModalOpen] = useState(false);
@@ -168,15 +169,27 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 
 	// ── GLOBAL FILTERED DATA ───────────────
 
+	function getReservationType(reservation: Reservation) {
+		if (reservation.missingFromSync) return "missing";
+
+		if (!reservation.guestName || !reservation.totalAmount) {
+			return "incomplete";
+		}
+
+		return "normal";
+	}
+
 	const filteredReservations = useMemo(() => {
 		return reservations.filter((reservation) => {
 			const apartmentMatch = selectedApartments.length === 0 || selectedApartments.includes(reservation.apartmentId._id);
-
 			const platformMatch = selectedPlatforms.length === 0 || selectedPlatforms.includes(reservation.platform);
+			const reservationType = getReservationType(reservation);
 
-			return apartmentMatch && platformMatch;
+			const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(reservationType);
+
+			return apartmentMatch && platformMatch && typeMatch;
 		});
-	}, [reservations, selectedApartments, selectedPlatforms]);
+	}, [reservations, selectedApartments, selectedPlatforms, selectedTypes]);
 
 	const visibleApartments = useMemo(() => {
 		if (selectedApartments.length === 0) return apartments;
@@ -207,8 +220,10 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 					selectedReservation={selectedReservation}
 					selectedApartments={selectedApartments}
 					selectedPlatforms={selectedPlatforms}
+					selectedTypes={selectedTypes}
 					onApartmentsChange={setSelectedApartments}
 					onPlatformsChange={setSelectedPlatforms}
+					onTypesChange={setSelectedTypes}
 					onSelectedReservationChange={setSelectedReservation}
 					onShowReservationDetails={openReservationDetails}
 					onModifyReservation={openEditModal}

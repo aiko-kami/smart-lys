@@ -30,31 +30,28 @@ export interface Reservation {
 	lastSyncAt?: string;
 	createdAt?: string;
 	updatedAt?: string;
+	missingFromSync?: boolean;
+	missingFromSyncAt?: string;
 }
 
 export type ReservationPayload = {
 	guestName: string;
 	guestEmail: string;
 	guestPhone: string;
-
 	apartmentId: string | null;
-
 	checkIn: string;
 	checkOut: string;
 	nights: number;
-
 	arrivalTime: string;
 	departureTime: string;
-
 	guests: number;
-
 	platform: "airbnb" | "booking" | "direct" | "other";
 	status: "pending" | "confirmed" | "cancelled" | "completed";
-
 	totalAmount: number;
 	currency: string;
-
 	externalId: string;
 	icalUid: string;
 	notes: string;
+	missingFromSync?: boolean;
+	missingFromSyncAt?: string;
 };

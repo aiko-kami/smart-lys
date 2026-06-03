@@ -13,9 +13,6 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
 	const body = await req.json();
-
-	console.log("🚀 ~ POST ~ body:", body);
-
 	const conn = await connectDB();
 
 	getClientModel(conn);

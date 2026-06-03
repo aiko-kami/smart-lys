@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PlatformIcon } from "@/components/ui/PlatformIcon";
 import type { Apartment, Reservation } from "@/types";
 import { PLATFORMS } from "@/utils/constants";
@@ -47,11 +47,25 @@ function viewLength(v: View) {
 	return { day: 1, week: 7, "2weeks": 14, month: 31 }[v];
 }
 
-function colMinWidth(v: View) {
+// Static min-widths — never read window here to avoid SSR mismatch.
+// The responsive week column width is handled via useWindowWidth() in the main component.
+function colMinWidth(v: View): number {
 	if (v === "day") return 160;
-	if (v === "week") return typeof window !== "undefined" && window.innerWidth > 1440 ? 90 : 110;
+	if (v === "week") return 110; // overridden at render time via weekColWidth
 	if (v === "2weeks") return 80;
 	return 52;
+}
+
+// Safe hook: returns 0 on the server / before first paint, real width after hydration.
+function useWindowWidth() {
+	const [width, setWidth] = useState(0);
+	useEffect(() => {
+		const update = () => setWidth(window.innerWidth);
+		update();
+		window.addEventListener("resize", update);
+		return () => window.removeEventListener("resize", update);
+	}, []);
+	return width;
 }
 
 function getPlatformStyle(platform?: string) {
@@ -63,22 +77,19 @@ function getPlatformStyle(platform?: string) {
 	};
 }
 
-// Checkout day: banner covers only the first third (morning departure).
+// Resolves apartmentId whether it is a populated object or a plain string/ObjectId.
+function resolveApartmentId(apartmentId: Reservation["apartmentId"]): string {
+	if (!apartmentId) return "";
+	if (typeof apartmentId === "string") return apartmentId;
+	if (typeof apartmentId === "object" && "_id" in apartmentId) return String(apartmentId._id);
+	return String(apartmentId);
+}
+
+// ─── span helpers ─────────────────────────────────────────────────────────────
+
 const CHECKOUT_FRACTION = 0.48;
-// Checkin day:  banner starts at 45% into the column (just under half).
 const CHECKIN_OFFSET = 0.52;
 
-/**
- * For a given reservation and the visible day range, return:
- *   - colStart        : 0-based index of the first visible day of the stay
- *   - colSpan         : full night columns (checkIn ≤ d < checkOut)
- *   - checkoutInView  : whether the checkout day itself is visible in the grid
- *   - startsHere      : the checkIn day is inside the visible window
- *   - endsHere        : the last night (day before checkout) is inside the visible window
- *
- * The rendered width = colSpan full columns + CHECKOUT_FRACTION of one extra column
- * when checkoutInView is true.
- */
 function getSpan(
 	r: Reservation,
 	days: Date[],
@@ -100,22 +111,17 @@ function getSpan(
 
 	for (let i = 0; i < days.length; i++) {
 		const d = days[i];
-		// full-night columns: checkIn ≤ d < checkOut
 		if (d >= checkIn && d < checkOut) {
 			if (colStart === -1) colStart = i;
 			colSpan++;
 		}
 	}
 
-	// A reservation that only covers the checkout day (zero nights visible) is still
-	// shown if the checkout day is in the window — as a small stub.
 	const checkoutIdx = days.findIndex((d) => sameDay(d, checkOut));
 	const checkoutInView = checkoutIdx >= 0;
 
-	// Nothing to show at all
 	if (colStart === -1 && !checkoutInView) return null;
 
-	// Edge case: reservation ends before the window starts — only checkout day visible
 	if (colStart === -1) {
 		return {
 			colStart: checkoutIdx,
@@ -141,24 +147,17 @@ function getSpan(
 	};
 }
 
-// ─── day header cell ──────────────────────────────────────────────────────────
+// ─── day header ───────────────────────────────────────────────────────────────
 
 function DayHeader({ day, view, isToday }: { day: Date; view: View; isToday: boolean }) {
-	const label =
-		view === "month"
-			? day.toLocaleDateString("fr-FR", { day: "2-digit" })
-			: view === "2weeks"
-				? day.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit" })
-				: day.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "short" });
-
 	return (
 		<div
 			className={`flex flex-col items-center justify-center py-2 text-center text-[11px] font-medium
-				${isToday ? "!text-violet-400 font-semibold" : ""}
+				${isToday ? "!text-violet-400 font-semibold" : "text-gray-500"}
 			`}
 		>
 			{view === "month" ? (
-				<span>{label}</span>
+				<span>{day.toLocaleDateString("fr-FR", { day: "2-digit" })}</span>
 			) : (
 				<>
 					<span className="uppercase tracking-wide" style={{ fontSize: 9 }}>
@@ -185,6 +184,7 @@ function ApartmentRow({
 	reservations,
 	view,
 	today,
+	effectiveColWidth,
 	onReservationClick,
 	onReservationDoubleClick,
 }: {
@@ -193,12 +193,12 @@ function ApartmentRow({
 	reservations: Reservation[];
 	view: View;
 	today: Date;
+	effectiveColWidth: number;
 	onReservationClick: (r: Reservation) => void;
 	onReservationDoubleClick: (r: Reservation) => void;
 }) {
 	const N = days.length;
 
-	// filter reservations that overlap the window
 	const spans = useMemo(() => {
 		return reservations
 			.map((r) => {
@@ -222,7 +222,7 @@ function ApartmentRow({
 
 	return (
 		<div className="flex border-b border-white/20 last:border-0">
-			{/* apartment label */}
+			{/* sticky label */}
 			<div className="sticky left-0 z-30 flex w-[180px] shrink-0 items-center gap-2.5 border-r border-white/20 bg-[#111827] px-3 py-2">
 				<img
 					src={apartment.image}
@@ -235,20 +235,25 @@ function ApartmentRow({
 				<span className="truncate text-xs font-medium text-white">{apartment.name}</span>
 			</div>
 
-			{/* grid */}
+			{/* day grid */}
 			<div
 				className="relative min-h-[52px] flex-1 bg-[#0F1117]"
 				style={{
 					display: "grid",
-					gridTemplateColumns: `repeat(${N}, minmax(${colMinWidth(view)}px, 1fr))`,
+					gridTemplateColumns: `repeat(${N}, minmax(${effectiveColWidth}px, 1fr))`,
 				}}
 			>
 				{/* background cells */}
-				{days.map((d, i) => (
-					<div key={isoDate(d)} className={`border-r border-white/20 ${sameDay(d, today) ? "bg-violet-500/[0.04]" : ""}`} />
+				{days.map((d) => (
+					<div
+						key={isoDate(d)}
+						className={`border-r border-white/20 
+							${sameDay(d, today) ? "bg-violet-500/[0.04]" : ""}
+						`}
+					/>
 				))}
 
-				{/* today vertical highlight */}
+				{/* today vertical line */}
 				{todayIdx >= 0 && (
 					<div
 						className="pointer-events-none absolute inset-y-0 z-10"
@@ -262,20 +267,15 @@ function ApartmentRow({
 				)}
 
 				{/* reservation banners */}
-				{spans.map(({ r, colStart, colSpan, checkoutInView, startsHere, endsHere, startsBeforeView, endsAfterView }) => {
-					// Checkin starts at the last third of its column (afternoon arrival)
+				{spans.map(({ r, colStart, colSpan, checkoutInView, startsHere, startsBeforeView, endsAfterView }) => {
 					const checkinShift = startsHere ? CHECKIN_OFFSET : 0;
-
-					// Effective columns:
-					//   subtract the 2/3 we skip on the checkin column
-					//   add 1/3 for the checkout morning stub (if visible)
 					const effectiveCols = colSpan - checkinShift + (checkoutInView ? CHECKOUT_FRACTION : 0);
-
 					const GAP = 2;
 					const left = `calc(${((colStart + checkinShift) / N) * 100}% + ${GAP}px)`;
 					const width = `calc(${(effectiveCols / N) * 100}% - ${GAP * 2}px)`;
 
 					const incomplete = !r.guestName || !r.totalAmount;
+					const missingFromSync = r.missingFromSync;
 					const platformStyle = getPlatformStyle(r.platform);
 
 					return (
@@ -284,26 +284,27 @@ function ApartmentRow({
 							onClick={() => onReservationClick(r)}
 							onDoubleClick={() => onReservationDoubleClick(r)}
 							title={r.guestName ?? "À compléter"}
-							style={{ left, width, backgroundColor: platformStyle.bg }}
-							className={`group absolute inset-y-[7px] z-20 flex items-center overflow-hidden px-2.5 text-left transition-opacity hover:opacity-80
-	${startsBeforeView ? "rounded-l-none border-l-0" : "rounded-l-md"}
-${endsAfterView ? "rounded-r-none border-r-0" : "rounded-r-md"}
-	border border-white/20
-		${incomplete ? "border border-amber-500/50 bg-amber-700/90 text-amber-100" : "border border-violet-500/50 bg-violet-700/90 text-violet-200"}
-	`}
+							style={{
+								left,
+								width,
+								backgroundColor: missingFromSync || incomplete ? undefined : platformStyle.bg,
+							}}
+							className={`group absolute inset-y-[7px] z-20 flex items-center overflow-hidden border px-2.5 text-left transition-opacity hover:opacity-80
+								${startsBeforeView ? "rounded-l-none" : "rounded-l-md"}
+								${endsAfterView ? "rounded-r-none" : "rounded-r-md"}
+								${missingFromSync ? "border-dashed border-amber-500/50 bg-amber-700/60 text-amber-100" : incomplete ? "border-violet-500/50 bg-violet-700/80 text-violet-200" : "border-white/10 text-white/90"}`}
 						>
-							{/* LEFT */}
-							<div className="flex items-center gap-1.5 min-w-0 flex-1">
-								{incomplete && (
-									<span className="shrink-0 text-[14px] text-amber-400" title="Réservation incomplète">
-										⚠
-									</span>
-								)}
-
+							<div className="flex min-w-0 flex-1 items-center gap-1.5">
+								{incomplete || missingFromSync ? <span className="shrink-0 text-[11px] text-amber-400">⚠</span> : null}
 								<span className="truncate text-[11px] font-medium">{r.guestName ?? "À compléter"}</span>
 							</div>
 
-							{/* RIGHT */}
+							{missingFromSync ? (
+								<div className="flex min-w-0 flex-1 items-center gap-1.5">
+									<span className="truncate text-[11px] font-medium">{"Non synchronisée"}</span>
+								</div>
+							) : null}
+
 							{r.platform && colSpan > 1 && (
 								<div className="ml-2 shrink-0">
 									<PlatformIcon platform={r.platform} logoOnly />
@@ -328,7 +329,13 @@ const VIEW_LABELS: Record<View, string> = {
 
 export default function ReservationsPlanning({ reservations = [], apartments = [], onReservationClick, onReservationDoubleClick }: Props) {
 	const [view, setView] = useState<View>("week");
-	const [offset, setOffset] = useState(0); // in units of viewLength
+	const [offset, setOffset] = useState(0);
+
+	// Responsive week column width — read window only client-side to avoid hydration mismatch.
+	// windowWidth === 0 means SSR or before first paint: fall back to 110 (same as SSR).
+	const windowWidth = useWindowWidth();
+	const weekColWidth = windowWidth === 0 ? 110 : windowWidth > 1440 ? 90 : 110;
+	const effectiveColWidth = view === "week" ? weekColWidth : colMinWidth(view);
 
 	const today = useMemo(() => midnight(new Date()), []);
 
@@ -342,20 +349,23 @@ export default function ReservationsPlanning({ reservations = [], apartments = [
 		const first = days[0];
 		const last = days[days.length - 1];
 		if (view === "day") {
-			return first.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+			return first.toLocaleDateString("fr-FR", {
+				weekday: "long",
+				day: "numeric",
+				month: "long",
+				year: "numeric",
+			});
 		}
-		const sameMonth = first.getMonth() === last.getMonth();
-		if (sameMonth) {
+		if (first.getMonth() === last.getMonth()) {
 			return first.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 		}
 		return `${first.toLocaleDateString("fr-FR", { month: "short" })} – ${last.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`;
 	}, [days, view]);
 
 	return (
-		<div className="flex flex-col rounded-2xl border border-white/10 bg-[#111827] overflow-hidden">
-			{/* ── TOOLBAR ── */}
+		<div className="flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111827]">
+			{/* toolbar */}
 			<div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/20 px-5 py-3">
-				{/* left: nav */}
 				<div className="flex items-center gap-2">
 					<button onClick={() => setOffset(0)} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-gray-400 hover:bg-white/5">
 						Aujourd'hui
@@ -373,7 +383,6 @@ export default function ReservationsPlanning({ reservations = [], apartments = [
 					</button>
 				</div>
 
-				{/* right: view switcher */}
 				<div className="flex gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
 					{(Object.keys(VIEW_LABELS) as View[]).map((v) => (
 						<button
@@ -382,7 +391,9 @@ export default function ReservationsPlanning({ reservations = [], apartments = [
 								setView(v);
 								setOffset(0);
 							}}
-							className={`rounded-lg px-3 py-1.5 text-xs transition ${view === v ? "bg-white/10 text-white font-medium" : "text-gray-500 hover:text-gray-300"}`}
+							className={`rounded-lg px-3 py-1.5 text-xs transition
+								${view === v ? "bg-white/10 font-medium text-white" : "text-gray-500 hover:text-gray-300"}
+							`}
 						>
 							{VIEW_LABELS[v]}
 						</button>
@@ -390,19 +401,17 @@ export default function ReservationsPlanning({ reservations = [], apartments = [
 				</div>
 			</div>
 
-			{/* ── GRID ── */}
-			<div className="overflow-x-auto">
-				<div style={{ minWidth: 180 + viewLength(view) * colMinWidth(view) }}>
+			{/* scrollable grid — w-0 min-w-full confines the scroll to this component */}
+			<div className="w-0 min-w-full overflow-x-auto">
+				<div style={{ minWidth: 180 + days.length * effectiveColWidth }}>
 					{/* header row */}
 					<div className="sticky top-0 z-30 flex border-b border-white/20 bg-[#111827]">
-						{/* label spacer */}
 						<div className="sticky left-0 z-40 w-[180px] shrink-0 border-r border-white/20 bg-[#111827] px-3 py-2 text-[10px] uppercase tracking-widest text-gray-600">Logement</div>
-						{/* day headers */}
 						<div
 							className="flex-1"
 							style={{
 								display: "grid",
-								gridTemplateColumns: `repeat(${days.length}, minmax(${colMinWidth(view)}px, 1fr))`,
+								gridTemplateColumns: `repeat(${days.length}, minmax(${effectiveColWidth}px, 1fr))`,
 							}}
 						>
 							{days.map((d) => (
@@ -418,23 +427,33 @@ export default function ReservationsPlanning({ reservations = [], apartments = [
 							key={apt._id}
 							apartment={apt}
 							days={days}
-							reservations={reservations.filter((r) => String(r.apartmentId._id) === apt._id)}
+							reservations={reservations.filter((r) => resolveApartmentId(r.apartmentId) === apt._id)}
 							view={view}
 							today={today}
+							effectiveColWidth={effectiveColWidth}
 							onReservationClick={onReservationClick}
 							onReservationDoubleClick={onReservationDoubleClick}
 						/>
 					))}
 				</div>
 			</div>
-			{/* LEGEND */}
-			<div className="sticky bottom-0 z-30 flex flex-wrap gap-3 border-t border-white/10 px-4 py-3 text-[11px] text-gray-300">
+
+			{/* legend */}
+			<div className="sticky bottom-0 z-30 flex flex-wrap gap-3 border-t border-white/[0.06] px-4 py-3 text-[11px] text-gray-500">
 				{PLATFORMS.map((p) => (
 					<div key={p.value} className="flex items-center gap-1.5">
-						<span className="h-4 w-5 rounded-sm" style={{ background: p.bg }} />
+						<span className="h-3.5 w-4 rounded-sm" style={{ background: p.bg }} />
 						<span>{p.label}</span>
 					</div>
 				))}
+				<div className="flex items-center gap-1.5">
+					<span className="h-3.5 w-4 rounded-sm border border-violet-500/50 bg-violet-700/60" />
+					<span>À compléter</span>
+				</div>
+				<div className="flex items-center gap-1.5">
+					<span className="h-3.5 w-4 rounded-sm border border-dashed border-amber-500/50 bg-amber-700/60" />
+					<span>Introuvable</span>
+				</div>
 			</div>
 		</div>
 	);

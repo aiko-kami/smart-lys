@@ -14,9 +14,11 @@ interface Props {
 	selectedReservation: Reservation | null;
 	selectedApartments: string[];
 	selectedPlatforms: string[];
+	selectedTypes: string[];
 
 	onApartmentsChange: (ids: string[]) => void;
 	onPlatformsChange: (platforms: string[]) => void;
+	onTypesChange: (types: string[]) => void;
 	onSelectedReservationChange: (reservation: Reservation | null) => void;
 	onShowReservationDetails: (reservation: Reservation) => void;
 	onModifyReservation: (reservation: Reservation) => void;
@@ -28,8 +30,10 @@ export default function ReservationsSidebar({
 	selectedReservation,
 	selectedApartments,
 	selectedPlatforms,
+	selectedTypes,
 	onApartmentsChange,
 	onPlatformsChange,
+	onTypesChange,
 	onSelectedReservationChange,
 	onShowReservationDetails,
 	onModifyReservation,
@@ -40,8 +44,10 @@ export default function ReservationsSidebar({
 				apartments={apartments}
 				selectedApartments={selectedApartments}
 				selectedPlatforms={selectedPlatforms}
+				selectedTypes={selectedTypes}
 				onApartmentsChange={onApartmentsChange}
 				onPlatformsChange={onPlatformsChange}
+				onTypesChange={onTypesChange}
 			/>
 
 			<SelectedReservationCard selectedReservation={selectedReservation} onShowDetails={onShowReservationDetails} onModify={onModifyReservation} onClose={() => onSelectedReservationChange(null)} />

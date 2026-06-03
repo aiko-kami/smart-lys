@@ -47,16 +47,21 @@ export async function fetchIcalEvents(url: string, apartmentName: string) {
 		// ─────────────────────────────
 		return parseIcal(text, apartmentName);
 	} catch (err: any) {
+		console.log("🔴 fetchIcalEvents RAW ERROR:", {
+			code: err?.code,
+			reason: err?.reason,
+			message: err?.message,
+			status: err?.status,
+			name: err?.name,
+			full: String(err),
+		});
+
 		// ─────────────────────────────
 		// 5. NORMALISATION UNIQUE (CRUCIAL)
 		// ─────────────────────────────
 
 		// ⚠️ on évite de perdre HTTP_XXX ici
-		const code =
-			err?.code ||
-			err?.reason || // compat ancienne version
-			err?.message ||
-			"UNKNOWN_ERROR";
+		const code = err?.code || err?.reason || err?.message || "UNKNOWN_ERROR";
 
 		throw {
 			code,

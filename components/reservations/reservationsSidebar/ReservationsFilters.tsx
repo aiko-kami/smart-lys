@@ -7,17 +7,37 @@ interface Props {
 
 	selectedApartments: string[];
 	selectedPlatforms: string[];
+	selectedTypes: string[];
 
 	onApartmentsChange: (ids: string[]) => void;
 	onPlatformsChange: (platforms: string[]) => void;
+	onTypesChange: (types: string[]) => void;
 }
 
-export default function ReservationsFilters({ apartments, selectedApartments, selectedPlatforms, onApartmentsChange, onPlatformsChange }: Props) {
+export default function ReservationsFilters({ apartments, selectedApartments, selectedPlatforms, selectedTypes, onApartmentsChange, onPlatformsChange, onTypesChange }: Props) {
 	const platforms = [
 		{ id: "airbnb", label: "Airbnb", color: "text-red-300 border-red-400 bg-red-500/10" },
 		{ id: "booking", label: "Booking", color: "text-blue-300 border-blue-400 bg-blue-500/10" },
 		{ id: "direct", label: "Direct", color: "text-emerald-300 border-emerald-400 bg-emerald-500/10" },
 		{ id: "other", label: "Autre", color: "text-violet-300 border-violet-400 bg-violet-500/10" },
+	];
+
+	const reservationTypes = [
+		{
+			id: "normal",
+			label: "Normales",
+			color: "text-sky-300 border-sky-400 bg-sky-500/10",
+		},
+		{
+			id: "incomplete",
+			label: "À compléter",
+			color: "text-violet-300 border-violet-400 bg-violet-500/10",
+		},
+		{
+			id: "missing",
+			label: "Non Sync",
+			color: "text-orange-300 border-orange-400 bg-orange-500/10",
+		},
 	];
 
 	return (
@@ -75,6 +95,28 @@ export default function ReservationsFilters({ apartments, selectedApartments, se
 								className={`rounded-full border px-3 py-1.5 text-sm transition ${active ? `${platform.color} ring-2 ring-white/10` : "border-white/10 text-gray-300 hover:bg-white/5"}`}
 							>
 								{platform.label}
+							</button>
+						);
+					})}
+				</div>
+			</div>
+			{/* Status */}
+			<div className="mt-6">
+				<p className="mb-2 text-xs text-gray-400">État</p>
+
+				<div className="flex flex-wrap gap-2">
+					{reservationTypes.map((type) => {
+						const active = selectedTypes.includes(type.id);
+
+						return (
+							<button
+								key={type.id}
+								onClick={() => {
+									onTypesChange(active ? selectedTypes.filter((t) => t !== type.id) : [...selectedTypes, type.id]);
+								}}
+								className={`rounded-full border px-3 py-1.5 text-sm transition ${active ? `${type.color} ring-2 ring-white/10` : "border-white/10 text-gray-300 hover:bg-white/5"}`}
+							>
+								{type.label}
 							</button>
 						);
 					})}

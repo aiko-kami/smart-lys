@@ -20,6 +20,9 @@ const ApartmentSchema = new Schema(
 			enum: ["airbnb", "booking", "direct", "other"],
 			default: "other",
 		},
+		lastSyncAt: { type: Date, default: null },
+		lastSyncSuccessAt: { type: Date, default: null },
+		lastSyncError: { type: String, default: null },
 	},
 	{ collection: "apartments", timestamps: true },
 );

@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-
 import { connectDB } from "@/lib/mongodb";
 import { registerModels, getApartmentModel, getReservationModel, getSettingsModel } from "@/lib/models";
-
 import { syncApartmentIcal } from "@/lib/ical";
 
 export async function POST() {
@@ -20,22 +18,19 @@ export async function POST() {
 
 		let totalSynced = 0;
 		let totalErrors = 0;
-
 		const results: any[] = [];
 
 		for (const apartment of apartments) {
 			console.log("🔄 Sync iCal:", apartment.name);
 
-			const result = await syncApartmentIcal(Reservation, apartment);
+			const result = await syncApartmentIcal(Reservation, Apartment, apartment);
 
 			results.push(result);
 
-			// comptage sync
 			if (Array.isArray(result.synced)) {
 				totalSynced += result.synced.length;
 			}
 
-			// comptage erreurs (seulement vraies erreurs)
 			if (result.error && result.error !== "NO_URL") {
 				totalErrors += 1;
 			}
@@ -43,8 +38,8 @@ export async function POST() {
 
 		const successMessages = results.filter((r) => !r.error).map((r) => r.message);
 		const errorMessages = results.filter((r) => r.error).map((r) => r.message);
-		const hasErrors = totalErrors > 0;
-		const syncStatus = hasErrors ? "error" : "success";
+
+		const syncStatus = totalErrors > 0 ? "error" : "success";
 		const syncMessage = `${totalSynced} sync • ${totalErrors} erreur${totalErrors > 1 ? "s" : ""}`;
 
 		await Settings.updateOne(
@@ -79,11 +74,7 @@ export async function POST() {
 			{
 				success: false,
 				error: "Sync failed",
-				summary: {
-					apartments: 0,
-					synced: 0,
-					errors: 1,
-				},
+				summary: { apartments: 0, synced: 0, errors: 1 },
 				successMessages: [],
 				errorMessages: ["Erreur critique de synchronisation iCal"],
 				results: [],

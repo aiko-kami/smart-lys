@@ -23,6 +23,8 @@ const ReservationSchema = new Schema(
 		notes: { type: String, default: "" },
 		isArchived: { type: Boolean, default: false },
 		lastSyncAt: { type: Date },
+		missingFromSync: { type: Boolean, default: false, index: true },
+		missingFromSyncAt: { type: Date, default: null },
 	},
 	{ collection: "reservations", timestamps: true },
 );
