@@ -25,6 +25,7 @@ const ReservationSchema = new Schema(
 		lastSyncAt: { type: Date },
 		missingFromSync: { type: Boolean, default: false, index: true },
 		missingFromSyncAt: { type: Date, default: null },
+		archivedAt: { type: Date, default: null },
 	},
 	{ collection: "reservations", timestamps: true },
 );

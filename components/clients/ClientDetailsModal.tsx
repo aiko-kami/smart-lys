@@ -61,6 +61,8 @@ export default function ClientDetailsModal({ client, onClose, onEdit, onDelete }
 
 				<InfoRow label="Adresse">{client.address}</InfoRow>
 
+				<InfoRow label="Entreprise">{client.company}</InfoRow>
+
 				<InfoRow label="Date de début">{client.startDate ? new Date(client.startDate).toLocaleDateString("fr-FR") : "—"}</InfoRow>
 
 				{/* DESCRIPTION */}

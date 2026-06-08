@@ -16,6 +16,7 @@ export default function ClientFormModal({ client, onClose, onSave }: ClientFormM
 		email: client?.email ?? "",
 		phone: client?.phone ?? "",
 		address: client?.address ?? "",
+		company: client?.company ?? "",
 		description: client?.description ?? "",
 		startDate: client?.startDate ? new Date(client.startDate).toISOString().split("T")[0] : "",
 	});
@@ -74,6 +75,11 @@ export default function ClientFormModal({ client, onClose, onSave }: ClientFormM
 							<input type="text" value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="2 rue Gambetta, 06160 Antibes" className={INPUT_CLASS} />
 						</Field>
 					</div>
+
+					{/* Company */}
+					<Field label="Entreprise">
+						<input type="text" value={form.company} onChange={(e) => set("company", e.target.value)} placeholder="Société..." className={INPUT_CLASS} />
+					</Field>
 
 					{/* Start date */}
 					<Field label="Client depuis">

@@ -9,7 +9,7 @@ async function getInvoices() {
 
 	const Invoice = getInvoiceModel(conn);
 
-	const invoices = await Invoice.find().populate("clientId", "name address").sort({ date: -1 }).lean();
+	const invoices = await Invoice.find().populate("clientId", "name address company").sort({ date: -1 }).lean();
 
 	return JSON.parse(JSON.stringify(invoices));
 }

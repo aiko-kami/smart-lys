@@ -1,4 +1,3 @@
-import ICAL from "ical.js";
 import { connectDB } from "@/lib/mongodb";
 import { getApartmentModel, getClientModel } from "@/lib/models";
 import ApartmentsClient from "@/components/apartments/ApartmentsClient";
@@ -37,7 +36,7 @@ async function getApartments() {
 	const conn = await connectDB();
 	getClientModel(conn);
 	const Apartment = getApartmentModel(conn);
-	const apartments = await Apartment.find().populate("clientId", "name").sort({ name: 1 }).lean();
+	const apartments = await Apartment.find().populate("clientId", "name company").sort({ name: 1 }).lean();
 
 	const serialized = JSON.parse(JSON.stringify(apartments));
 
@@ -60,7 +59,7 @@ export default async function ApartmentsPage() {
 	getClientModel(conn);
 	const Apartment = getApartmentModel(conn);
 
-	const raw = await Apartment.find().populate("clientId", "name").sort({ name: 1 }).lean();
+	const raw = await Apartment.find().populate("clientId", "name company").sort({ name: 1 }).lean();
 
 	// Serialize + mark all as available until real iCal URLs are set
 	const apartments = JSON.parse(JSON.stringify(raw)).map((apt: any) => ({

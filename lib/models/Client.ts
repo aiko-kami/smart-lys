@@ -6,6 +6,7 @@ const ClientSchema = new Schema(
 		email: { type: String, default: "" },
 		phone: { type: String, default: "" },
 		address: { type: String, default: "" },
+		company: { type: String, default: "" },
 		description: { type: String, default: "" },
 		startDate: { type: Date },
 	},

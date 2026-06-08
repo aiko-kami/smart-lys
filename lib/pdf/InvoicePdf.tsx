@@ -72,6 +72,12 @@ export function InvoicePdf({ invoice, payment, logoBase64 }: any) {
 			fontWeight: 400,
 		},
 
+		clientCompany: {
+			fontSize: 9,
+			color: "#444",
+			marginTop: 2,
+		},
+
 		clientAddr: {
 			fontSize: 9,
 			color: "#444",
@@ -307,6 +313,7 @@ export function InvoicePdf({ invoice, payment, logoBase64 }: any) {
 						</View>
 						<View style={styles.clientBody}>
 							<Text style={styles.clientName}>{invoice.clientId?.name}</Text>
+							{invoice.clientId?.company && <Text style={styles.clientCompany}>{invoice.clientId.company}</Text>}
 							<Text style={styles.clientAddr}>{invoice.clientId?.address}</Text>
 						</View>
 					</View>

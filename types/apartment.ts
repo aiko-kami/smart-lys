@@ -4,6 +4,7 @@ import type { Platform } from "@/types";
 export interface ClientRef {
 	_id: string;
 	name: string;
+	company: string;
 }
 
 // ── Apartment ─────────────────────────────

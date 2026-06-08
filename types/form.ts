@@ -7,6 +7,7 @@ export interface ClientFormData {
 	email: string;
 	phone: string;
 	address: string;
+	company: string;
 	description: string;
 	startDate: string;
 }

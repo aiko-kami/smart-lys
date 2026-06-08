@@ -39,6 +39,8 @@ type ReservationPayload = {
 	icalUid: string;
 	notes: string;
 	nights: number;
+	isArchived: boolean;
+	archivedAt: string | null;
 };
 
 export default function ReservationsClient({ reservations: initial = [], apartments = [], clients = [], sync }: Props) {
@@ -76,6 +78,14 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 	const handleSaveReservation = async (formData: ReservationPayload) => {
 		try {
 			// ─── UPDATE ─────────────────────────────
+
+			// if archived, set archivedAt
+			if (formData.isArchived && !formData.archivedAt) {
+				formData.archivedAt = new Date().toISOString();
+			} else if (!formData.isArchived) {
+				formData.archivedAt = null;
+			}
+
 			if (editingReservation) {
 				const res = await fetch(`/api/reservations/${editingReservation._id}`, {
 					method: "PUT",

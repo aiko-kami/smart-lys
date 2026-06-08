@@ -137,6 +137,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 												<div className="min-w-0">
 													<p className="truncate text-sm font-medium">{client.name}</p>
 													{client.description && <p className="truncate text-xs text-gray-500">{client.description}</p>}
+													{client.company && <p className="truncate text-xs text-gray-500">{client.company}</p>}
 													{client.address && <p className="truncate text-xs text-gray-500">{client.address}</p>}
 												</div>
 											</div>
@@ -194,6 +195,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 												<p className="mt-0.5 truncate text-xs text-gray-400">{client.email}</p>
 												{client.phone && <p className="mt-0.5 text-xs text-gray-500">{client.phone}</p>}
 												{client.description && <p className="mt-1 text-xs text-gray-600">{client.description}</p>}
+												{client.company && <p className="mt-1 text-xs text-gray-600">{client.company}</p>}
 												{client.address && <p className="mt-1 text-xs text-gray-600">{client.address}</p>}
 											</div>
 											<div className="mt-3 flex gap-2">

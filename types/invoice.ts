@@ -4,6 +4,7 @@ export interface InvoiceClient {
 	_id: string;
 	name: string;
 	address?: string;
+	company?: string;
 }
 
 export interface InvoiceLine {

@@ -222,7 +222,8 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 											</div>
 										</td>
 										<td className="px-5 py-4">
-											<p className="truncate text-sm text-gray-300">{typeof apt.clientId === "string" ? "—" : (apt.clientId?.name ?? "—")}</p>
+											<p className="truncate text-sm">{typeof apt.clientId === "string" ? "—" : (apt.clientId?.name ?? "—")}</p>
+											{typeof apt.clientId !== "string" && apt.clientId.company && <p className="truncate text-[10px] text-gray-400">{apt.clientId.company}</p>}
 										</td>
 										<td className="px-5 py-4 text-center">
 											<div className="flex justify-center">
@@ -260,7 +261,8 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 												{apt.address}
 											</p>
 											<div className="mt-2 flex items-center justify-between gap-2 cursor-pointer" onClick={() => setDetailsTarget(apt)}>
-												<p className="text-xs text-gray-400">{typeof apt.clientId === "string" ? "—" : (apt.clientId?.name ?? "—")}</p>
+												<p className="text-xs">{typeof apt.clientId === "string" ? "—" : (apt.clientId?.name ?? "—")}</p>
+												{typeof apt.clientId !== "string" && apt.clientId.company && <p className="text-[10px] text-gray-400">{apt.clientId.company}</p>}
 												<StatusBadge occupied={apt.occupied} />
 											</div>
 											<div className="mt-3 flex gap-2">
