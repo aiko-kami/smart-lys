@@ -18,6 +18,7 @@ export interface Invoice {
 	_id: string;
 	number: string;
 	clientId: string | InvoiceClient;
+	removeName: boolean;
 	date: string;
 	dueDate?: string;
 	lines: InvoiceLine[];

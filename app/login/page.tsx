@@ -54,23 +54,29 @@ export default function LoginPage() {
 					{/* CONTENT */}
 					<div className="relative z-10">
 						<AnimatedTitle />
-
-						<input
-							type="password"
-							value={pin}
-							onChange={(e) => {
-								setPin(e.target.value);
-								setError("");
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								submit();
 							}}
-							className="w-full mt-8 mb-2 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none"
-						/>
+						>
+							<input
+								type="password"
+								value={pin}
+								onChange={(e) => {
+									setPin(e.target.value);
+									setError("");
+								}}
+								className="w-full mt-8 mb-2 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none"
+							/>
 
-						{error && <p className="text-sm text-right pr-2 text-red-400">{error}</p>}
-						<div className="mt-8 flex justify-center items-center">
-							<button onClick={submit} disabled={loading} className="rounded-xl min-w-48 px-8 py-3 bg-violet-600 font-medium text-white transition hover:bg-violet-500">
-								{loading ? "Connexion..." : "Entrer"}
-							</button>
-						</div>
+							{error && <p className="text-sm text-right pr-2 text-red-400">{error}</p>}
+							<div className="mt-8 flex justify-center items-center">
+								<button onClick={submit} disabled={loading} className="rounded-xl min-w-48 px-8 py-3 bg-violet-600 font-medium text-white transition hover:bg-violet-500">
+									{loading ? "Connexion..." : "Entrer"}
+								</button>
+							</div>
+						</form>
 					</div>
 					<button
 						onClick={() => setMatrixEnabled((v) => !v)}

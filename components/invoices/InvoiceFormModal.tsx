@@ -17,6 +17,7 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 	const [form, setForm] = useState({
 		number: invoice?.number ?? "",
 		clientId: typeof invoice?.clientId === "string" ? invoice.clientId : (invoice?.clientId?._id ?? ""),
+		removeName: invoice?.removeName ?? false,
 		date: invoice?.date ? invoice.date.slice(0, 10) : "",
 		dueDate: invoice?.dueDate ? invoice.dueDate.slice(0, 10) : "",
 		status: invoice?.status ?? "draft",
@@ -138,7 +139,7 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 				{error && <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">{error}</div>}
 
 				<form onSubmit={handleSubmit} className="space-y-4">
-					{/* NUMBER + CLIENT */}
+					{/* NUMBER + CLIENT + REMOVE NAME */}
 					<div className="grid grid-cols-2 gap-4">
 						<Field label="Numéro">
 							<input value={form.number} onChange={(e) => set("number", e.target.value)} className={`${INPUT_CLASS} ${errors.number ? "border-red-500/50" : ""}`} />
@@ -156,6 +157,11 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 							</select>
 							{errors.clientId && <p className="mt-1 text-xs text-red-400">{errors.clientId}</p>}
 						</Field>
+
+						<div className="col-span-2 flex items-center gap-2">
+							<label className="text-xs font-medium text-gray-400">Masquer le nom du client</label>
+							<input type="checkbox" checked={form.removeName} onChange={(e) => set("removeName", e.target.checked)} className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded" />
+						</div>
 					</div>
 
 					{/* DATES */}
