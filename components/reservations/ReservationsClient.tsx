@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-import type { Reservation, Apartment, Client } from "@/types";
+import type { Reservation, Apartment, Client, ReservationPayload } from "@/types";
 
 import ReservationsHeader from "@/components/reservations/ReservationsHeader";
 import ReservationsPlanning from "@/components/reservations/ReservationsPlanning";
@@ -20,28 +20,6 @@ interface Props {
 	clients?: Client[];
 	sync?: any;
 }
-
-type ReservationPayload = {
-	guestName: string;
-	guestEmail: string;
-	guestPhone: string;
-	apartmentId: string | null;
-	checkIn: string;
-	checkOut: string;
-	arrivalTime: string;
-	departureTime: string;
-	guests: number;
-	platform: Reservation["platform"];
-	totalAmount: number;
-	currency: string;
-	status: Reservation["status"];
-	externalId: string;
-	icalUid: string;
-	notes: string;
-	nights: number;
-	isArchived: boolean;
-	archivedAt: string | null;
-};
 
 export default function ReservationsClient({ reservations: initial = [], apartments = [], clients = [], sync }: Props) {
 	const router = useRouter();
@@ -78,13 +56,6 @@ export default function ReservationsClient({ reservations: initial = [], apartme
 	const handleSaveReservation = async (formData: ReservationPayload) => {
 		try {
 			// ─── UPDATE ─────────────────────────────
-
-			// if archived, set archivedAt
-			if (formData.isArchived && !formData.archivedAt) {
-				formData.archivedAt = new Date().toISOString();
-			} else if (!formData.isArchived) {
-				formData.archivedAt = null;
-			}
 
 			if (editingReservation) {
 				const res = await fetch(`/api/reservations/${editingReservation._id}`, {
