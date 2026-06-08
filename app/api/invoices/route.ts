@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import { getInvoiceModel } from "@/lib/models";
+import { registerModels, getInvoiceModel } from "@/lib/models";
 
 // ── GET all invoices ──
 export async function GET() {
 	const conn = await connectDB();
+	registerModels(conn);
 	const Invoice = getInvoiceModel(conn);
 
 	const invoices = await Invoice.find().populate("clientId").sort({ createdAt: -1 });
@@ -16,6 +17,7 @@ export async function GET() {
 export async function POST(req: Request) {
 	try {
 		const conn = await connectDB();
+		registerModels(conn);
 		const Invoice = getInvoiceModel(conn);
 
 		const body = await req.json();
