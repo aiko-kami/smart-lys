@@ -30,10 +30,18 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 
 	function set<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
 		setForm((prev) => ({ ...prev, [field]: value }));
+		// Efface l'erreur du champ dès que l'utilisateur modifie
+		if (field in errors) {
+			setErrors((prev) => {
+				const next = { ...prev };
+				delete next[field as string];
+				return next;
+			});
+		}
 	}
 
 	// ── VALIDATION ─────────────────────────────
-	function validate() {
+	async function validate(): Promise<boolean> {
 		const newErrors: Record<string, string> = {};
 
 		if (!form.number.trim()) newErrors.number = "Le numéro est requis";
@@ -46,6 +54,22 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 			if (l.quantity <= 0) newErrors[`line-${i}-quantity`] = "Quantité invalide";
 			if (l.unitPrice <= 0) newErrors[`line-${i}-unitPrice`] = "Prix invalide";
 		});
+
+		const numberChanged = !invoice || invoice.number !== form.number.trim();
+
+		if (form.number.trim() && numberChanged) {
+			try {
+				const res = await fetch(`/api/invoices/check-invoice-number?number=${encodeURIComponent(form.number.trim())}${invoice ? `&excludeId=${invoice._id}` : ""}`);
+				const data = await res.json();
+
+				if (data.exists) {
+					newErrors.number = `Le numéro "${form.number.trim()}" est déjà utilisé`;
+				}
+			} catch {
+				// En cas d'erreur on ne bloque pas la validation, mais on log l'erreur
+				console.error("Erreur lors de la vérification du numéro de facture");
+			}
+		}
 
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
@@ -62,14 +86,8 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 	function updateLine(index: number, key: keyof InvoiceLine, value: any) {
 		setForm((prev) => {
 			const updated = [...prev.lines];
-
-			updated[index] = {
-				...updated[index],
-				[key]: value,
-			};
-
+			updated[index] = { ...updated[index], [key]: value };
 			updated[index].total = updated[index].quantity * updated[index].unitPrice;
-
 			return { ...prev, lines: updated };
 		});
 	}
@@ -85,19 +103,17 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setError(null);
-
-		if (!validate()) {
-			setError("Merci de corriger les erreurs du formulaire");
-			return;
-		}
-
 		setSaving(true);
 
 		try {
-			await onSave({
-				...form,
-				total,
-			});
+			const valid = await validate();
+
+			if (!valid) {
+				setError("Merci de corriger les erreurs du formulaire");
+				return;
+			}
+
+			await onSave({ ...form, total });
 			onClose();
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Erreur lors de l'enregistrement");
@@ -113,7 +129,6 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 				{/* HEADER */}
 				<div className="mb-6 flex items-center justify-between">
 					<h2 className="text-lg font-semibold">{invoice ? "Modifier la facture" : "Nouvelle facture"}</h2>
-
 					<button onClick={onClose} className="rounded-lg border border-white/10 p-2 text-gray-400 hover:bg-white/10">
 						<FaXmark size={16} />
 					</button>
@@ -126,12 +141,12 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 					{/* NUMBER + CLIENT */}
 					<div className="grid grid-cols-2 gap-4">
 						<Field label="Numéro">
-							<input value={form.number} onChange={(e) => set("number", e.target.value)} className={INPUT_CLASS} />
-							{errors.number && <p className="text-xs text-red-400">{errors.number}</p>}
+							<input value={form.number} onChange={(e) => set("number", e.target.value)} className={`${INPUT_CLASS} ${errors.number ? "border-red-500/50" : ""}`} />
+							{errors.number && <p className="mt-1 text-xs text-red-400">{errors.number}</p>}
 						</Field>
 
 						<Field label="Client">
-							<select value={form.clientId} onChange={(e) => set("clientId", e.target.value)} className={INPUT_CLASS}>
+							<select value={form.clientId} onChange={(e) => set("clientId", e.target.value)} className={`${INPUT_CLASS} ${errors.clientId ? "border-red-500/50" : ""}`}>
 								<option value="">Choisir un client</option>
 								{clients.map((c) => (
 									<option key={c._id} value={c._id}>
@@ -139,15 +154,15 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 									</option>
 								))}
 							</select>
-							{errors.clientId && <p className="text-xs text-red-400">{errors.clientId}</p>}
+							{errors.clientId && <p className="mt-1 text-xs text-red-400">{errors.clientId}</p>}
 						</Field>
 					</div>
 
 					{/* DATES */}
 					<div className="grid grid-cols-2 gap-4">
 						<Field label="Date">
-							<input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} className={INPUT_CLASS} />
-							{errors.date && <p className="text-xs text-red-400">{errors.date}</p>}
+							<input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} className={`${INPUT_CLASS} ${errors.date ? "border-red-500/50" : ""}`} />
+							{errors.date && <p className="mt-1 text-xs text-red-400">{errors.date}</p>}
 						</Field>
 
 						<Field label="Échéance">
@@ -179,18 +194,14 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 							<div key={i}>
 								<div className="grid grid-cols-12 gap-2">
 									<input className={`${INPUT_CLASS} col-span-5`} value={line.description} onChange={(e) => updateLine(i, "description", e.target.value)} />
-
 									<input type="number" className={`${INPUT_CLASS} col-span-2`} value={line.quantity} onChange={(e) => updateLine(i, "quantity", Number(e.target.value))} />
-
 									<input type="number" className={`${INPUT_CLASS} col-span-2`} value={line.unitPrice} onChange={(e) => updateLine(i, "unitPrice", Number(e.target.value))} />
-
-									<div className="col-span-2 text-xs text-gray-400">{line.total} €</div>
-
+									<div className="col-span-2 flex items-center text-xs text-gray-400">{line.total} €</div>
 									<button type="button" onClick={() => removeLine(i)} className="col-span-1 text-red-400">
 										×
 									</button>
 								</div>
-								<div className="">
+								<div>
 									{errors[`line-${i}-description`] && <p className="text-xs text-red-400">{errors[`line-${i}-description`]}</p>}
 									{errors[`line-${i}-quantity`] && <p className="text-xs text-red-400">{errors[`line-${i}-quantity`]}</p>}
 									{errors[`line-${i}-unitPrice`] && <p className="text-xs text-red-400">{errors[`line-${i}-unitPrice`]}</p>}
@@ -212,9 +223,8 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 						<button type="button" onClick={onClose} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm">
 							Annuler
 						</button>
-
-						<button type="submit" disabled={saving} className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white">
-							{saving ? "Enregistrement..." : invoice ? "Modifier" : "Créer"}
+						<button type="submit" disabled={saving} className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white disabled:opacity-60">
+							{saving ? "Vérification…" : invoice ? "Modifier" : "Créer"}
 						</button>
 					</div>
 				</form>

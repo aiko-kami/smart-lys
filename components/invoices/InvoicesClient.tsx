@@ -97,11 +97,6 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 					body: JSON.stringify(data),
 				});
 
-				console.log("📡 STATUS:", res.status);
-				console.log("📡 OK:", res.ok);
-				console.log("📡 HEADERS:", Object.fromEntries(res.headers.entries()));
-				const rawText = await res.text();
-				console.log("📦 RAW RESPONSE:", rawText);
 				if (!res.ok) throw new Error("Erreur lors de la création de facture");
 
 				const created = await res.json();
