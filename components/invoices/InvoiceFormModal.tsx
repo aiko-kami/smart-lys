@@ -10,6 +10,8 @@ import { INPUT_CLASS } from "@/utils";
 import { InvoiceFormModalProps } from "@/types/modal";
 
 export default function InvoiceFormModal({ invoice, clients = [], onClose, onSave }: InvoiceFormModalProps) {
+	console.log("🚀 ~ InvoiceFormModal ~ invoice:", invoice?.lines);
+
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [errors, setErrors] = useState<Record<string, string>>({});
@@ -17,11 +19,12 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 	const [form, setForm] = useState({
 		number: invoice?.number ?? "",
 		clientId: typeof invoice?.clientId === "string" ? invoice.clientId : (invoice?.clientId?._id ?? ""),
+		title: invoice?.title ?? "",
 		removeName: invoice?.removeName ?? false,
 		date: invoice?.date ? invoice.date.slice(0, 10) : "",
 		dueDate: invoice?.dueDate ? invoice.dueDate.slice(0, 10) : "",
 		status: invoice?.status ?? "draft",
-		lines: invoice?.lines ?? ([] as InvoiceLine[]),
+		lines: invoice?.lines ?? ([{ description: "", quantity: 1, unitPrice: 0, total: 0 }] as InvoiceLine[]),
 	});
 
 	// ── TOTAL ─────────────────────────────
@@ -139,34 +142,38 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 				{error && <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">{error}</div>}
 
 				<form onSubmit={handleSubmit} className="space-y-4">
-					{/* NUMBER + CLIENT + REMOVE NAME */}
+					{/* NUMBER + CLIENT + TITLE + REMOVE NAME */}
 					<div className="grid grid-cols-2 gap-4">
-						<Field label="Numéro">
+						<Field label="Numéro *">
 							<input value={form.number} onChange={(e) => set("number", e.target.value)} className={`${INPUT_CLASS} ${errors.number ? "border-red-500/50" : ""}`} />
 							{errors.number && <p className="mt-1 text-xs text-red-400">{errors.number}</p>}
 						</Field>
 
-						<Field label="Client">
-							<select value={form.clientId} onChange={(e) => set("clientId", e.target.value)} className={`${INPUT_CLASS} ${errors.clientId ? "border-red-500/50" : ""}`}>
-								<option value="">Choisir un client</option>
-								{clients.map((c) => (
-									<option key={c._id} value={c._id}>
-										{c.name}
-									</option>
-								))}
-							</select>
-							{errors.clientId && <p className="mt-1 text-xs text-red-400">{errors.clientId}</p>}
-						</Field>
-
-						<div className="col-span-2 flex items-center gap-2">
-							<label className="text-xs font-medium text-gray-400">Masquer le nom du client</label>
-							<input type="checkbox" checked={form.removeName} onChange={(e) => set("removeName", e.target.checked)} className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded" />
+						<div className="space-y-2 relative">
+							<Field label="Client *">
+								<select value={form.clientId} onChange={(e) => set("clientId", e.target.value)} className={`${INPUT_CLASS} ${errors.clientId ? "border-red-500/50" : ""}`}>
+									<option value="">Choisir un client</option>
+									{clients.map((c) => (
+										<option key={c._id} value={c._id}>
+											{c.name}
+										</option>
+									))}
+								</select>
+								{errors.clientId && <p className="mt-1 text-xs text-red-400">{errors.clientId}</p>}
+							</Field>
+							<div className="absolute flex items-center justify-end gap-2 right-1.5">
+								<label className="text-xs font-medium text-gray-400">Masquer le nom du client</label>
+								<input type="checkbox" checked={form.removeName} onChange={(e) => set("removeName", e.target.checked)} className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded" />
+							</div>
 						</div>
 					</div>
+					<Field label="Intitulé">
+						<input value={form.title} onChange={(e) => set("title", e.target.value)} className={INPUT_CLASS} placeholder="" />
+					</Field>
 
 					{/* DATES */}
 					<div className="grid grid-cols-2 gap-4">
-						<Field label="Date">
+						<Field label="Date *">
 							<input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} className={`${INPUT_CLASS} ${errors.date ? "border-red-500/50" : ""}`} />
 							{errors.date && <p className="mt-1 text-xs text-red-400">{errors.date}</p>}
 						</Field>
@@ -189,7 +196,7 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 					{/* LINES */}
 					<div className="space-y-3">
 						<div className="flex justify-between">
-							<h3 className="text-sm text-gray-300">Lignes</h3>
+							<h3 className="text-sm text-gray-300">Lignes *</h3>
 							<button type="button" onClick={addLine} className="text-xs text-blue-400">
 								+ Ajouter
 							</button>

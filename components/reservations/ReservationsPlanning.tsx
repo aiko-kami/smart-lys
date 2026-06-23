@@ -225,7 +225,7 @@ function ApartmentRow({
 			{/* sticky label */}
 			<div className="sticky left-0 z-30 flex w-[180px] shrink-0 items-center gap-2.5 border-r border-white/20 bg-[#111827] px-3 py-2">
 				<img
-					src={apartment.image}
+					src={apartment.image?.trim() || "/images/house-placeholder.jpg"}
 					onError={(e) => {
 						e.currentTarget.src = "/images/house-placeholder.jpg";
 					}}

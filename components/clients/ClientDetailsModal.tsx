@@ -61,6 +61,16 @@ export default function ClientDetailsModal({ client, onClose, onEdit, onDelete }
 
 				<InfoRow label="Adresse">{client.address}</InfoRow>
 
+				<InfoRow label="Email">
+					{client.email ? (
+						<a href={`mailto:${client.email}`} className="text-blue-400 hover:underline">
+							{client.email}
+						</a>
+					) : (
+						<span className="text-gray-500">—</span>
+					)}
+				</InfoRow>
+
 				<InfoRow label="Entreprise">{client.company}</InfoRow>
 
 				<InfoRow label="Date de début">{client.startDate ? new Date(client.startDate).toLocaleDateString("fr-FR") : "—"}</InfoRow>

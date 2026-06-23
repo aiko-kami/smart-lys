@@ -18,6 +18,7 @@ function fmtDate(d: string | Date) {
 
 export function InvoicePdf({ invoice, payment, logoBase64 }: any) {
 	const BLUE = "rgb(0, 114, 200)";
+	const BLUE_LIGHT = "rgb(112, 160, 255)";
 	const BLUE_DARK = "rgb(0, 80, 150)";
 	const LIGHT_GRAY = "#f0f3f8";
 	const BORDER = "#cdd8ea";
@@ -87,8 +88,32 @@ export function InvoicePdf({ invoice, payment, logoBase64 }: any) {
 		/* META TABLE: INVOICE NUMBER / DATE */
 		metaWrapper: {
 			flexDirection: "row",
-			justifyContent: "flex-end",
+			justifyContent: "space-between",
 			marginBottom: 28,
+		},
+
+		titleTable: {
+			width: 150,
+			border: "1px solid " + BORDER,
+			alignSelf: "flex-start",
+		},
+
+		titleHeadCell: {
+			backgroundColor: BLUE_LIGHT,
+			color: "#fff",
+			fontSize: 7,
+			fontWeight: 400,
+			padding: 3,
+			letterSpacing: 1,
+			textTransform: "uppercase",
+			textAlign: "center",
+		},
+
+		titleBodyCell: {
+			backgroundColor: LIGHT_GRAY,
+			padding: 5,
+			fontSize: 8,
+			textAlign: "center",
 		},
 
 		metaTable: {
@@ -115,7 +140,10 @@ export function InvoicePdf({ invoice, payment, logoBase64 }: any) {
 		metaRow: {
 			flexDirection: "row",
 			backgroundColor: LIGHT_GRAY,
-			borderTop: "1px solid " + BORDER,
+		},
+
+		title: {
+			marginBottom: 10,
 		},
 
 		metaCell: {
@@ -319,7 +347,16 @@ export function InvoicePdf({ invoice, payment, logoBase64 }: any) {
 				</View>
 
 				{/* META */}
-				<View style={styles.metaWrapper}>
+				<View style={[styles.metaWrapper, !invoice.title && { justifyContent: "flex-end" }]}>
+					{/* Tableau Intitulé — affiché uniquement si title est renseigné */}
+					{invoice.title && (
+						<View style={styles.titleTable}>
+							<Text style={styles.titleHeadCell}>Intitulé</Text>
+							<Text style={styles.titleBodyCell}>{invoice.title}</Text>
+						</View>
+					)}
+
+					{/* Tableau N° facture / Date */}
 					<View style={styles.metaTable}>
 						<View style={styles.metaHeadRow}>
 							<Text style={styles.metaHeadCell}>Facture n°</Text>

@@ -18,6 +18,7 @@ const InvoiceSchema = new Schema(
 			ref: "Client",
 			required: [true, "Le client est requis"],
 		},
+		title: { type: String },
 		removeName: { type: Boolean, default: false },
 		date: { type: Date, required: [true, "La date est requise"] },
 		dueDate: { type: Date },

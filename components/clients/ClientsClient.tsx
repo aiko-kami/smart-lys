@@ -122,8 +122,8 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 							<thead>
 								<tr className="border-b border-white/10">
 									<th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Client</th>
-									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
-									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Téléphone</th>
+									<th className="hidden lg:table-cell px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
+									<th className="hidden lg:table-cell px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Téléphone</th>
 									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Depuis le</th>
 									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
 								</tr>
@@ -142,7 +142,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 												</div>
 											</div>
 										</td>
-										<td className="px-5 py-4">
+										<td className="hidden lg:table-cell px-5 py-4">
 											{client.email ? (
 												<p className="truncate text-center text-sm text-gray-300">
 													<a href={`mailto:${client.email}`} className="hover:underline hover:text-white">
@@ -153,7 +153,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 												<p className="text-center text-sm text-gray-500">—</p>
 											)}
 										</td>
-										<td className="px-5 py-4">
+										<td className="hidden lg:table-cell px-5 py-4">
 											{client.phone ? (
 												<p className="text-center text-sm text-gray-400">
 													<a href={`tel:${client.phone}`} className="hover:text-white hover:underline">
