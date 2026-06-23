@@ -347,7 +347,7 @@ export function InvoicePdf({ invoice, payment, logoBase64 }: any) {
 				</View>
 
 				{/* META */}
-				<View style={[styles.metaWrapper, !invoice.title && { justifyContent: "flex-end" }]}>
+				<View style={[styles.metaWrapper, invoice.title ? {} : { justifyContent: "flex-end" }]}>
 					{/* Tableau Intitulé — affiché uniquement si title est renseigné */}
 					{invoice.title && (
 						<View style={styles.titleTable}>
