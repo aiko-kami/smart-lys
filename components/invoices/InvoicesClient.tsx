@@ -75,8 +75,6 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 	}
 
 	async function handleSave(data: Partial<Invoice>) {
-		console.log("🚀 ~ handleSave ~ data:", data);
-
 		setError(null);
 
 		try {

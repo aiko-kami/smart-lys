@@ -29,6 +29,10 @@ const InvoiceSchema = new Schema(
 			enum: ["draft", "sent", "paid", "late"],
 			default: "draft",
 		},
+		paymentMode: {
+			type: String,
+			default: "",
+		},
 	},
 	{ timestamps: true },
 );

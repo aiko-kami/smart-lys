@@ -25,6 +25,7 @@ export interface Invoice {
 	lines: InvoiceLine[];
 	total: number;
 	status: InvoiceStatus;
+	paymentMode?: string;
 	createdAt?: string;
 	updatedAt?: string;
 }

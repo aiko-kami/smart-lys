@@ -10,8 +10,6 @@ import { INPUT_CLASS } from "@/utils";
 import { InvoiceFormModalProps } from "@/types/modal";
 
 export default function InvoiceFormModal({ invoice, clients = [], onClose, onSave }: InvoiceFormModalProps) {
-	console.log("🚀 ~ InvoiceFormModal ~ invoice:", invoice?.lines);
-
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [errors, setErrors] = useState<Record<string, string>>({});
@@ -24,6 +22,7 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 		date: invoice?.date ? invoice.date.slice(0, 10) : "",
 		dueDate: invoice?.dueDate ? invoice.dueDate.slice(0, 10) : "",
 		status: invoice?.status ?? "draft",
+		paymentMode: invoice?.paymentMode ?? "",
 		lines: invoice?.lines ?? ([{ description: "", quantity: 1, unitPrice: 0, total: 0 }] as InvoiceLine[]),
 	});
 
@@ -187,10 +186,15 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 					<Field label="Statut">
 						<select value={form.status} onChange={(e) => set("status", e.target.value as any)} className={INPUT_CLASS}>
 							<option value="draft">Brouillon</option>
-							<option value="sent">Envoyée</option>
-							<option value="paid">Payée</option>
+							<option value="sent">Envoyé</option>
+							<option value="paid">Payé</option>
 							<option value="late">En retard</option>
 						</select>
+					</Field>
+
+					{/* PAYMENT MODE */}
+					<Field label="Mode de paiement">
+						<input value={form.paymentMode} onChange={(e) => set("paymentMode", e.target.value)} className={INPUT_CLASS} placeholder="" />
 					</Field>
 
 					{/* LINES */}
@@ -205,11 +209,11 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 
 						{form.lines.map((line, i) => (
 							<div key={i}>
-								<div className="grid grid-cols-12 gap-2">
-									<input className={`${INPUT_CLASS} col-span-5`} value={line.description} onChange={(e) => updateLine(i, "description", e.target.value)} />
+								<div className="grid grid-cols-14 gap-2">
+									<input className={`${INPUT_CLASS} col-span-7`} value={line.description} onChange={(e) => updateLine(i, "description", e.target.value)} />
 									<input type="number" className={`${INPUT_CLASS} col-span-2`} value={line.quantity} onChange={(e) => updateLine(i, "quantity", Number(e.target.value))} />
 									<input type="number" className={`${INPUT_CLASS} col-span-2`} value={line.unitPrice} onChange={(e) => updateLine(i, "unitPrice", Number(e.target.value))} />
-									<div className="col-span-2 flex items-center text-xs text-gray-400">{line.total} €</div>
+									<div className="col-span-2 flex items-center justify-center text-sm text-gray-300">{line.total} €</div>
 									<button type="button" onClick={() => removeLine(i)} className="col-span-1 text-red-400">
 										×
 									</button>
