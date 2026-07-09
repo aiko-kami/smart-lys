@@ -8,6 +8,18 @@ import ClientDetailsModal from "./ClientDetailsModal";
 import type { Client, ClientsClientProps } from "@/types";
 import { AVATAR_BG, initials, formatDate } from "@/utils";
 import { RemoveButton, EditButton } from "@/components/buttons/Buttons";
+import { Th } from "@/components/ui/SortableTable";
+import { useSort } from "@/hooks/useSort";
+
+type ClientSortKey = "name" | "email" | "phone" | "startDate";
+
+// Mobile sort options
+const MOBILE_SORT_OPTIONS: { label: string; key: ClientSortKey }[] = [
+	{ label: "Nom", key: "name" },
+	{ label: "Email", key: "email" },
+	{ label: "Téléphone", key: "phone" },
+	{ label: "Depuis le", key: "startDate" },
+];
 
 export default function ClientsClient({ clients: initial }: ClientsClientProps) {
 	const [clients, setClients] = useState<Client[]>(initial);
@@ -18,11 +30,16 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 	const [deleting, setDeleting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
+	// ── Filter ────────────────────────────────────────────────────────────────
 	const filtered = useMemo(() => {
 		const q = search.toLowerCase();
 		return clients.filter((c) => c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || c.phone?.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q));
 	}, [clients, search]);
 
+	// ── Sort ──────────────────────────────────────────────────────────────────
+	const { sorted, sortKey, sortDir, handleSort } = useSort<Client, ClientSortKey>(filtered, "name");
+
+	// ── Actions ───────────────────────────────────────────────────────────────
 	async function handleSave(data: Partial<Client>) {
 		setError(null);
 		try {
@@ -32,9 +49,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
-
 				if (!res.ok) throw new Error("Erreur lors de la modification du client");
-
 				const updated = await res.json();
 				toast.success("Client mis à jour");
 				setClients((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
@@ -44,14 +59,11 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
-
 				if (!res.ok) throw new Error("Erreur lors de la création du client");
-
 				const created = await res.json();
 				toast.success("Nouveau client créé");
 				setClients((prev) => [...prev, created]);
 			}
-
 			setEditing(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Une erreur est survenue");
@@ -66,7 +78,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 		try {
 			const res = await fetch(`/api/clients/${deleteTarget._id}`, { method: "DELETE" });
 			if (!res.ok) throw new Error("Erreur lors de la suppression");
-			toast.success("Client suprimé");
+			toast.success("Client supprimé");
 			setClients((prev) => prev.filter((c) => c._id !== deleteTarget._id));
 			setDeleteTarget(null);
 		} catch (e) {
@@ -77,14 +89,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 		}
 	}
 
-	function openEdit(client: Client) {
-		setEditing(client);
-	}
-
-	function openCreate() {
-		setEditing("new");
-	}
-
+	// ── UI ────────────────────────────────────────────────────────────────────
 	return (
 		<div className="space-y-6">
 			{/* Header */}
@@ -95,41 +100,57 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 						{clients.length} client{clients.length > 1 ? "s" : ""} enregistré{clients.length > 1 ? "s" : ""}
 					</p>
 				</div>
-				<button onClick={openCreate} className="rounded-xl bg-indigo-600 bg- px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500">
+				<button onClick={() => setEditing("new")} className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500">
 					+ Nouveau client
 				</button>
 			</div>
 
-			{/* Search */}
-			<input
-				type="text"
-				placeholder="Rechercher par nom, email, téléphone..."
-				value={search}
-				onChange={(e) => setSearch(e.target.value)}
-				className="w-full rounded-xl border border-white/10 bg-[#111827] px-3 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500"
-			/>
+			{/* Search + mobile sort */}
+			<div className="flex flex-wrap gap-3">
+				<input
+					type="text"
+					placeholder="Rechercher par nom, email, téléphone..."
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#111827] px-3 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500"
+				/>
+
+				{/* Mobile sort selector — visible only on small screens */}
+				<div className="flex items-center gap-2 sm:hidden">
+					<select value={sortKey} onChange={(e) => handleSort(e.target.value as ClientSortKey)} className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2.5 text-sm text-white outline-none">
+						{MOBILE_SORT_OPTIONS.map((o) => (
+							<option key={o.key} value={o.key}>
+								{o.label}
+							</option>
+						))}
+					</select>
+					<button onClick={() => handleSort(sortKey)} className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2.5 text-sm text-white" title={sortDir === "asc" ? "Croissant" : "Décroissant"}>
+						{sortDir === "asc" ? "↑" : "↓"}
+					</button>
+				</div>
+			</div>
 
 			{/* List */}
 			<div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111827]">
-				{filtered.length === 0 ? (
+				{sorted.length === 0 ? (
 					<div className="flex flex-col items-center justify-center py-16 text-gray-500">
 						<p className="text-sm">Aucun client trouvé</p>
 					</div>
 				) : (
 					<>
-						{/* Desktop — standard table */}
+						{/* ── DESKTOP ── */}
 						<table className="hidden w-full sm:table">
 							<thead>
 								<tr className="border-b border-white/10">
-									<th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Client</th>
-									<th className="hidden lg:table-cell px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
-									<th className="hidden lg:table-cell px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Téléphone</th>
-									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Depuis le</th>
-									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+									<Th label="Client" sortKey="name" current={sortKey} dir={sortDir} onSort={handleSort} align="left" />
+									<Th label="Email" sortKey="email" current={sortKey} dir={sortDir} onSort={handleSort} />
+									<Th label="Téléphone" sortKey="phone" current={sortKey} dir={sortDir} onSort={handleSort} />
+									<Th label="Depuis le" sortKey="startDate" current={sortKey} dir={sortDir} onSort={handleSort} />
+									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 cursor-default">Actions</th>
 								</tr>
 							</thead>
 							<tbody>
-								{filtered.map((client, i) => (
+								{sorted.map((client, i) => (
 									<tr key={client._id} className="border-b border-white/10 last:border-0">
 										<td className="px-5 py-4">
 											<div className="flex min-w-0 items-center gap-3 cursor-pointer" onClick={() => setDetailsTarget(client)}>
@@ -142,34 +163,28 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 												</div>
 											</div>
 										</td>
-										<td className="hidden lg:table-cell px-5 py-4">
+										<td className="hidden lg:table-cell px-5 py-4 text-center">
 											{client.email ? (
-												<p className="truncate text-center text-sm text-gray-300">
-													<a href={`mailto:${client.email}`} className="hover:underline hover:text-white">
-														{client.email}
-													</a>
-												</p>
+												<a href={`mailto:${client.email}`} className="text-sm text-gray-300 hover:underline hover:text-white">
+													{client.email}
+												</a>
 											) : (
-												<p className="text-center text-sm text-gray-500">—</p>
+												<span className="text-sm text-gray-500">—</span>
 											)}
 										</td>
-										<td className="hidden lg:table-cell px-5 py-4">
+										<td className="hidden lg:table-cell px-5 py-4 text-center">
 											{client.phone ? (
-												<p className="text-center text-sm text-gray-400">
-													<a href={`tel:${client.phone}`} className="hover:text-white hover:underline">
-														{client.phone}
-													</a>
-												</p>
+												<a href={`tel:${client.phone}`} className="text-sm text-gray-400 hover:text-white hover:underline">
+													{client.phone}
+												</a>
 											) : (
-												<p className="text-center text-sm text-gray-500">—</p>
+												<span className="text-sm text-gray-500">—</span>
 											)}
 										</td>
-										<td className="px-5 py-4">
-											<p className="text-center text-sm text-gray-400">{formatDate(client.startDate)}</p>
-										</td>
+										<td className="px-5 py-4 text-center text-sm text-gray-400">{formatDate(client.startDate)}</td>
 										<td className="px-5 py-4">
 											<div className="flex items-center justify-center gap-2">
-												<EditButton action={() => openEdit(client)} btnSize="xs" />
+												<EditButton action={() => setEditing(client)} btnSize="xs" />
 												<RemoveButton action={() => setDeleteTarget(client)} btnSize="xs" />
 											</div>
 										</td>
@@ -178,9 +193,9 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 							</tbody>
 						</table>
 
-						{/* Mobile — card list */}
+						{/* ── MOBILE ── */}
 						<ul className="sm:hidden">
-							{filtered.map((client, i) => (
+							{sorted.map((client, i) => (
 								<li key={client._id} className="border-b border-white/10 last:border-0">
 									<div className="flex items-start gap-3 p-4">
 										<div
@@ -199,7 +214,7 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 												{client.address && <p className="mt-1 text-xs text-gray-600">{client.address}</p>}
 											</div>
 											<div className="mt-3 flex gap-2">
-												<EditButton action={() => openEdit(client)} btnSize="xs" />
+												<EditButton action={() => setEditing(client)} btnSize="xs" />
 												<RemoveButton action={() => setDeleteTarget(client)} btnSize="xs" />
 											</div>
 										</div>
@@ -212,33 +227,20 @@ export default function ClientsClient({ clients: initial }: ClientsClientProps) 
 			</div>
 
 			<p className="text-xs text-gray-500">
-				{filtered.length} client{filtered.length > 1 ? "s" : ""}
-				{filtered.length !== clients.length && ` sur ${clients.length}`}
+				{sorted.length} client{sorted.length > 1 ? "s" : ""}
+				{sorted.length !== clients.length && ` sur ${clients.length}`}
 			</p>
 
-			{/* Form modal */}
-			{editing && (
-				<ClientFormModal
-					client={editing === "new" ? null : editing}
-					onClose={() => {
-						setEditing(null);
-					}}
-					onSave={handleSave}
-				/>
-			)}
-
-			{/* Delete modal */}
+			{/* Modals */}
+			{editing && <ClientFormModal client={editing === "new" ? null : editing} onClose={() => setEditing(null)} onSave={handleSave} />}
 			{deleteTarget && <DeleteClientModal client={deleteTarget} deleting={deleting} onConfirm={handleDeleteConfirm} onClose={() => setDeleteTarget(null)} />}
-
-			{/* Details modal */}
-
 			{detailsTarget && (
 				<ClientDetailsModal
 					client={detailsTarget}
 					onClose={() => setDetailsTarget(null)}
 					onEdit={(client) => {
 						setDetailsTarget(null);
-						openEdit(client);
+						setEditing(client);
 					}}
 					onDelete={(client) => {
 						setDetailsTarget(null);

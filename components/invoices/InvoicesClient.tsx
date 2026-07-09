@@ -10,17 +10,20 @@ import InvoiceStatusBadge from "@/components/ui/InvoiceStatusBadge";
 import InvoiceFormModal from "@/components/invoices/InvoiceFormModal";
 import PaymentFormModal from "@/components/invoices/PaymentFormModal";
 import DeleteInvoiceModal from "@/components/invoices/DeleteInvoiceModal";
+import { Th } from "@/components/ui/SortableTable";
+import { useSort } from "@/hooks/useSort";
 
-export default function InvoicedClient({ invoices: initial, clients, payment }: { invoices: Invoice[]; clients: Client[]; payment: Payment | null }) {
+type InvoiceSortKey = "clientName" | "number" | "date" | "total" | "status";
+
+export default function InvoicesClient({ invoices: initial, clients, payment }: { invoices: Invoice[]; clients: Client[]; payment: Payment | null }) {
 	const [invoices, setInvoices] = useState(initial);
-
 	const [allClients] = useState<Client[]>(clients);
 
 	const [search, setSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [clientFilter, setClientFilter] = useState("all");
 
-	// ── Modals ─────────────────────────────
+	// ── Modals ────────────────────────────────────────────────────────────────
 	const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 	const [editModalOpen, setEditModalOpen] = useState(false);
 	const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -29,23 +32,30 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 	const [deleting, setDeleting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// ── FILTER ─────────────────────────────
+	// ── Helpers ───────────────────────────────────────────────────────────────
+	function getClientName(clientId: Invoice["clientId"]) {
+		if (!clientId) return "Client inconnu";
+		if (typeof clientId === "string") return "Client inconnu";
+		return clientId.name ?? "Client inconnu";
+	}
+
+	// ── Filter ────────────────────────────────────────────────────────────────
 	const filtered = useMemo(() => {
 		return invoices.filter((inv) => {
-			// search
 			const matchSearch = inv.number.toLowerCase().includes(search.toLowerCase()) || (typeof inv.clientId !== "string" && inv.clientId?.name?.toLowerCase().includes(search.toLowerCase()));
-
-			// status
 			const matchStatus = statusFilter === "all" || inv.status === statusFilter;
-
-			// client
 			const matchClient = clientFilter === "all" || (typeof inv.clientId !== "string" && inv.clientId?._id === clientFilter);
-
 			return matchSearch && matchStatus && matchClient;
 		});
 	}, [invoices, search, statusFilter, clientFilter]);
 
-	// ── STATS ─────────────────────────────
+	// ── Sort ──────────────────────────────────────────────────────────────────
+	// useSort works on plain fields — we add a derived `clientName` for sorting by client.
+	const filteredWithClientName = useMemo(() => filtered.map((inv) => ({ ...inv, clientName: getClientName(inv.clientId) })), [filtered]);
+
+	const { sorted, sortKey, sortDir, handleSort } = useSort<(typeof filteredWithClientName)[number], InvoiceSortKey>(filteredWithClientName, "date", "desc");
+
+	// ── Stats ─────────────────────────────────────────────────────────────────
 	const stats = useMemo(
 		() => ({
 			total: invoices.length,
@@ -56,14 +66,7 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 		[invoices],
 	);
 
-	// ── HELPERS ─────────────────────────────
-	function getClientName(clientId: Invoice["clientId"]) {
-		if (!clientId) return "Client inconnu";
-		if (typeof clientId === "string") return "Client inconnu";
-		return clientId.name ?? "Client inconnu";
-	}
-
-	// ── ACTIONS ─────────────────────────────
+	// ── Actions ───────────────────────────────────────────────────────────────
 	function openCreate() {
 		setSelectedInvoice(null);
 		setEditModalOpen(true);
@@ -76,7 +79,6 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 
 	async function handleSave(data: Partial<Invoice>) {
 		setError(null);
-
 		try {
 			if (selectedInvoice) {
 				const res = await fetch(`/api/invoices/${selectedInvoice._id}`, {
@@ -84,9 +86,7 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
-
 				if (!res.ok) throw new Error("Erreur lors de la modification de facture");
-
 				const updated = await res.json();
 				toast.success("Facture mise à jour");
 				setInvoices((prev) => prev.map((i) => (i._id === updated._id ? updated : i)));
@@ -96,14 +96,11 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
-
 				if (!res.ok) throw new Error("Erreur lors de la création de facture");
-
 				const created = await res.json();
 				toast.success("Nouvelle facture créée");
 				setInvoices((prev) => [...prev, created]);
 			}
-
 			setEditModalOpen(false);
 			setSelectedInvoice(null);
 		} catch (e) {
@@ -115,14 +112,10 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 	async function handleDelete(id: string) {
 		setDeleting(true);
 		setError(null);
-
 		try {
-			const res = await fetch(`/api/invoices/${id}`, {
-				method: "DELETE",
-			});
-
+			const res = await fetch(`/api/invoices/${id}`, { method: "DELETE" });
 			if (!res.ok) throw new Error("Erreur lors de la suppression de facture");
-			toast.success("Facture suprimée");
+			toast.success("Facture supprimée");
 			setInvoices((prev) => prev.filter((i) => i._id !== id));
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Une erreur est survenue");
@@ -132,7 +125,7 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 		}
 	}
 
-	// ── UI ─────────────────────────────
+	// ── UI ────────────────────────────────────────────────────────────────────
 	return (
 		<div className="space-y-6">
 			{/* HEADER */}
@@ -143,8 +136,7 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 						{invoices.length} facture{invoices.length > 1 ? "s" : ""}
 					</p>
 				</div>
-
-				<div className="flex items-end gap-2">
+				<div className="flex items-center gap-2">
 					<button
 						onClick={() => setPaymentModalOpen(true)}
 						className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#111827] px-4 py-2 text-sm text-white transition hover:bg-white/10"
@@ -159,18 +151,15 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 			</div>
 
 			{/* STATS */}
-			<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+			<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
 				{[
 					{ label: "Total", value: stats.total, color: "text-white" },
 					{ label: "Payées", value: stats.paid, color: "text-green-400" },
 					{ label: "Envoyées", value: stats.sent, color: "text-white" },
-
-					// affiché seulement si > 0
 					...(stats.late > 0 ? [{ label: "En retard", value: stats.late, color: "text-red-400" }] : []),
 				].map((s) => (
 					<div key={s.label} className="rounded-2xl border border-white/10 bg-[#111827] p-4">
 						<p className="text-xs uppercase text-gray-400">{s.label}</p>
-
 						<p className={`mt-2 text-3xl font-bold ${s.color}`}>{s.value}</p>
 					</div>
 				))}
@@ -182,9 +171,8 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 					value={search}
 					onChange={(e) => setSearch(e.target.value)}
 					placeholder="Rechercher..."
-					className="flex-1 min-w-0 rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white"
+					className="min-w-36 max-w-140 flex-1 rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white"
 				/>
-
 				<select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white">
 					<option value="all">Tous les statuts</option>
 					<option value="draft">Brouillon</option>
@@ -192,7 +180,6 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 					<option value="paid">Payé</option>
 					<option value="late">En retard</option>
 				</select>
-
 				<select value={clientFilter} onChange={(e) => setClientFilter(e.target.value)} className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white">
 					<option value="all">Tous les clients</option>
 					{allClients.map((c) => (
@@ -207,23 +194,29 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 			<div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#111827]">
 				<table className="w-full">
 					<thead>
-						<tr className="border-b border-white/10 text-xs uppercase text-gray-500">
-							<th className="px-5 py-3 text-left">Client</th>
-							<th className="px-5 py-3 text-center">N°</th>
-							<th className="px-5 py-3 text-center">Date</th>
-							<th className="px-5 py-3 text-center">Montant</th>
-							<th className="px-5 py-3 text-center">Statut</th>
-							<th className="px-5 py-3 text-center">Actions</th>
+						<tr className="border-b border-white/10">
+							<Th label="Client" sortKey="clientName" current={sortKey} dir={sortDir} onSort={handleSort} align="left" />
+							<Th label="N°" sortKey="number" current={sortKey} dir={sortDir} onSort={handleSort} />
+							<Th label="Date" sortKey="date" current={sortKey} dir={sortDir} onSort={handleSort} />
+							<Th label="Montant" sortKey="total" current={sortKey} dir={sortDir} onSort={handleSort} align="right" />
+							<Th label="Statut" sortKey="status" current={sortKey} dir={sortDir} onSort={handleSort} />
+							<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-widest text-gray-500 cursor-default">Actions</th>
 						</tr>
 					</thead>
-
 					<tbody>
-						{filtered.map((inv) => (
-							<tr key={inv._id} className="border-b border-white/10">
-								<td className="px-5 py-4">{getClientName(inv.clientId)}</td>
-								<td className="px-5 py-4 text-center">{inv.number}</td>
-								<td className="px-5 py-4 text-center">{formatDate(inv.date)}</td>
-								<td className="px-5 py-4 text-center">{inv.total} €</td>
+						{sorted.length === 0 && (
+							<tr>
+								<td colSpan={6} className="py-16 text-center text-sm italic text-gray-600">
+									Aucune facture trouvée
+								</td>
+							</tr>
+						)}
+						{sorted.map((inv) => (
+							<tr key={inv._id} className="border-b border-white/10 last:border-0 hover:bg-white/[0.02] transition">
+								<td className="px-5 py-4 text-sm text-white">{getClientName(inv.clientId)}</td>
+								<td className="px-5 py-4 text-center text-sm text-gray-300">{inv.number}</td>
+								<td className="px-5 py-4 text-center text-sm text-gray-300">{formatDate(inv.date)}</td>
+								<td className="px-5 py-4 text-right text-sm font-semibold text-white">{inv.total} €</td>
 								<td className="px-5 py-4 text-center">
 									<InvoiceStatusBadge status={inv.status} />
 								</td>
@@ -232,11 +225,9 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 										<button onClick={() => window.open(`/api/invoices/${inv._id}/pdf`, "_blank")} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10">
 											Ouvrir
 										</button>
-
 										<button onClick={() => handleEdit(inv)} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10">
 											Éditer
 										</button>
-
 										<button onClick={() => setDeleteModal(inv)} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10">
 											Supprimer
 										</button>
@@ -249,24 +240,13 @@ export default function InvoicedClient({ invoices: initial, clients, payment }: 
 			</div>
 
 			<p className="text-xs text-gray-500">
-				{filtered.length} facture{filtered.length > 1 ? "s" : ""}
-				{filtered.length !== invoices.length && ` sur ${invoices.length}`}
+				{sorted.length} facture{sorted.length > 1 ? "s" : ""}
+				{sorted.length !== invoices.length && ` sur ${invoices.length}`}
 			</p>
 
 			{/* MODALS */}
 			{editModalOpen && <InvoiceFormModal invoice={selectedInvoice} clients={clients} onClose={() => setEditModalOpen(false)} onSave={handleSave} />}
-
-			{paymentModalOpen && (
-				<PaymentFormModal
-					open={paymentModalOpen}
-					payment={paymentInfo}
-					onClose={() => setPaymentModalOpen(false)}
-					onSaved={(saved) => {
-						setPaymentInfo(saved);
-					}}
-				/>
-			)}
-
+			{paymentModalOpen && <PaymentFormModal open={paymentModalOpen} payment={paymentInfo} onClose={() => setPaymentModalOpen(false)} onSaved={(saved) => setPaymentInfo(saved)} />}
 			{deleteModal && (
 				<DeleteInvoiceModal
 					invoice={deleteModal}

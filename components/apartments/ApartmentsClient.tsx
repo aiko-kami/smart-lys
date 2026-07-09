@@ -12,6 +12,17 @@ import type { Platform } from "@/types";
 import { PLATFORMS } from "@/utils/constants";
 import { AVATAR_BG, initials } from "@/utils";
 import { RemoveButton, EditButton } from "@/components/buttons/Buttons";
+import { Th } from "@/components/ui/SortableTable";
+import { useSort } from "@/hooks/useSort";
+
+type ApartmentSortKey = "name" | "clientName" | "platform" | "occupied";
+
+const MOBILE_SORT_OPTIONS: { label: string; key: ApartmentSortKey }[] = [
+	{ label: "Nom", key: "name" },
+	{ label: "Client", key: "clientName" },
+	{ label: "Plateforme", key: "platform" },
+	{ label: "Statut", key: "occupied" },
+];
 
 export default function ApartmentsClient({ apartments: initial }: ApartmentsClientProps) {
 	const [apartments, setApartments] = useState<Apartment[]>(initial);
@@ -33,6 +44,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 			.catch(() => setAllClients([]));
 	}, []);
 
+	// ── Filter ────────────────────────────────────────────────────────────────
 	const filtered = useMemo(() => {
 		return apartments.filter((a) => {
 			const matchSearch = a.name.toLowerCase().includes(search.toLowerCase()) || a.address.toLowerCase().includes(search.toLowerCase());
@@ -43,6 +55,19 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 		});
 	}, [apartments, search, platformFilter, clientFilter, statusFilter]);
 
+	// ── Sort ──────────────────────────────────────────────────────────────────
+	const filteredWithDerived = useMemo(
+		() =>
+			filtered.map((a) => ({
+				...a,
+				clientName: typeof a.clientId === "string" ? "" : (a.clientId?.name ?? ""),
+			})),
+		[filtered],
+	);
+
+	const { sorted, sortKey, sortDir, handleSort } = useSort<(typeof filteredWithDerived)[number], ApartmentSortKey>(filteredWithDerived, "name");
+
+	// ── Stats ─────────────────────────────────────────────────────────────────
 	const stats = useMemo(
 		() => ({
 			total: apartments.length,
@@ -52,6 +77,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 		[apartments],
 	);
 
+	// ── Actions ───────────────────────────────────────────────────────────────
 	async function handleSave(data: Partial<Apartment>) {
 		setError(null);
 		try {
@@ -61,12 +87,9 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
-
 				if (!res.ok) throw new Error("Erreur lors de la modification");
-
 				const updated = await res.json();
 				toast.success("Appartement mis à jour");
-
 				setApartments((prev) => prev.map((a) => (a._id === updated._id ? { ...updated, occupied: a.occupied } : a)));
 			} else {
 				const res = await fetch("/api/apartments", {
@@ -74,15 +97,11 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
 				});
-
 				if (!res.ok) throw new Error("Erreur lors de la création");
-
 				const created = await res.json();
 				toast.success("Appartement créé");
-
 				setApartments((prev) => [...prev, { ...created, occupied: false }]);
 			}
-
 			setEditing(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Une erreur est survenue");
@@ -97,7 +116,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 		try {
 			const res = await fetch(`/api/apartments/${deleteTarget._id}`, { method: "DELETE" });
 			if (!res.ok) throw new Error("Erreur lors de la suppression");
-			toast.success("Appartement suprimé");
+			toast.success("Appartement supprimé");
 			setApartments((prev) => prev.filter((a) => a._id !== deleteTarget._id));
 			setDeleteTarget(null);
 		} catch (e) {
@@ -108,14 +127,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 		}
 	}
 
-	function openEdit(apt: Apartment) {
-		setEditing(apt);
-	}
-
-	function openCreate() {
-		setEditing("new");
-	}
-
+	// ── UI ────────────────────────────────────────────────────────────────────
 	return (
 		<div className="space-y-6">
 			{/* Header */}
@@ -126,7 +138,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 						{stats.total} bien{stats.total > 1 ? "s" : ""} géré{stats.total > 1 ? "s" : ""}
 					</p>
 				</div>
-				<button onClick={openCreate} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500">
+				<button onClick={() => setEditing("new")} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500">
 					+ Ajouter un appartement
 				</button>
 			</div>
@@ -152,13 +164,9 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 					placeholder="Rechercher..."
 					value={search}
 					onChange={(e) => setSearch(e.target.value)}
-					className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500"
+					className="min-w-36 max-w-140 flex-1 rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500"
 				/>
-				<select
-					value={statusFilter}
-					onChange={(e) => setStatusFilter(e.target.value)}
-					className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
-				>
+				<select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white outline-none">
 					<option value="all">Tous les statuts</option>
 					<option value="occupied">Occupé</option>
 					<option value="available">Disponible</option>
@@ -166,21 +174,16 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 				<select
 					value={platformFilter}
 					onChange={(e) => setPlatformFilter(e.target.value as Platform | "all")}
-					className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
+					className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white outline-none"
 				>
 					<option value="all">Toutes les plateformes</option>
-
 					{PLATFORMS.map((p) => (
 						<option key={p.value} value={p.value}>
 							{p.label}
 						</option>
 					))}
 				</select>
-				<select
-					value={clientFilter}
-					onChange={(e) => setClientFilter(e.target.value)}
-					className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
-				>
+				<select value={clientFilter} onChange={(e) => setClientFilter(e.target.value)} className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white outline-none">
 					<option value="all">Tous les clients</option>
 					{allClients.map((c) => (
 						<option key={c._id} value={c._id}>
@@ -188,32 +191,46 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 						</option>
 					))}
 				</select>
+
+				{/* Mobile sort */}
+				<div className="flex items-center gap-2 sm:hidden">
+					<select value={sortKey} onChange={(e) => handleSort(e.target.value as ApartmentSortKey)} className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white outline-none">
+						{MOBILE_SORT_OPTIONS.map((o) => (
+							<option key={o.key} value={o.key}>
+								{o.label}
+							</option>
+						))}
+					</select>
+					<button onClick={() => handleSort(sortKey)} className="rounded-xl border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white" title={sortDir === "asc" ? "Croissant" : "Décroissant"}>
+						{sortDir === "asc" ? "↑" : "↓"}
+					</button>
+				</div>
 			</div>
 
 			{/* List */}
 			<div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111827]">
-				{filtered.length === 0 ? (
+				{sorted.length === 0 ? (
 					<div className="flex flex-col items-center justify-center py-16 text-gray-500">
 						<p className="text-sm">Aucun appartement trouvé</p>
 					</div>
 				) : (
 					<>
-						{/* Desktop — standard table */}
+						{/* ── DESKTOP ── */}
 						<table className="hidden w-full sm:table">
 							<thead>
 								<tr className="border-b border-white/10">
-									<th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Appartement</th>
-									<th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Client</th>
-									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Statut</th>
-									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Plateforme</th>
-									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+									<Th label="Appartement" sortKey="name" current={sortKey} dir={sortDir} onSort={handleSort} align="left" />
+									<Th label="Client" sortKey="clientName" current={sortKey} dir={sortDir} onSort={handleSort} align="left" />
+									<Th label="Statut" sortKey="occupied" current={sortKey} dir={sortDir} onSort={handleSort} />
+									<Th label="Plateforme" sortKey="platform" current={sortKey} dir={sortDir} onSort={handleSort} />
+									<th className="px-5 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 cursor-default">Actions</th>
 								</tr>
 							</thead>
 							<tbody>
-								{filtered.map((apt, i) => (
+								{sorted.map((apt, i) => (
 									<tr key={apt._id} className="border-b border-white/10 last:border-0">
 										<td className="px-5 py-4">
-											<div onClick={() => setDetailsTarget(apt)} className="flex min-w-0 cursor-pointer items-center gap-3 hover:opacity-80 transition">
+											<div onClick={() => setDetailsTarget(apt)} className="flex min-w-0 cursor-pointer items-center gap-3 transition hover:opacity-80">
 												<div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${AVATAR_BG[i % AVATAR_BG.length]}`}>{initials(apt.name)}</div>
 												<div className="min-w-0">
 													<p className="truncate text-sm font-medium">{apt.name}</p>
@@ -237,7 +254,7 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 										</td>
 										<td className="px-5 py-4">
 											<div className="flex items-center justify-center gap-2">
-												<EditButton action={() => openEdit(apt)} btnSize="xs" />
+												<EditButton action={() => setEditing(apt)} btnSize="xs" />
 												<RemoveButton action={() => setDeleteTarget(apt)} btnSize="xs" />
 											</div>
 										</td>
@@ -246,27 +263,27 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 							</tbody>
 						</table>
 
-						{/* Mobile — card list */}
+						{/* ── MOBILE ── */}
 						<ul className="sm:hidden">
-							{filtered.map((apt, i) => (
+							{sorted.map((apt, i) => (
 								<li key={apt._id} className="border-b border-white/10 last:border-0">
 									<div className="flex items-start gap-3 p-4">
 										<div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${AVATAR_BG[i % AVATAR_BG.length]}`}>{initials(apt.name)}</div>
 										<div className="min-w-0 flex-1">
-											<div className="flex items-center gap-2 cursor-pointer" onClick={() => setDetailsTarget(apt)}>
+											<div className="flex cursor-pointer items-center gap-2" onClick={() => setDetailsTarget(apt)}>
 												<p className="truncate font-medium">{apt.name}</p>
 												<PlatformIcon platform={apt.platform} />
 											</div>
-											<p className="mt-0.5 truncate text-xs text-gray-400 cursor-pointer" onClick={() => setDetailsTarget(apt)}>
+											<p className="mt-0.5 truncate cursor-pointer text-xs text-gray-400" onClick={() => setDetailsTarget(apt)}>
 												{apt.address}
 											</p>
-											<div className="mt-2 flex items-center justify-between gap-2 cursor-pointer" onClick={() => setDetailsTarget(apt)}>
+											<div className="mt-2 flex cursor-pointer items-center justify-between gap-2" onClick={() => setDetailsTarget(apt)}>
 												<p className="text-xs">{typeof apt.clientId === "string" ? "—" : (apt.clientId?.name ?? "—")}</p>
 												{typeof apt.clientId !== "string" && apt.clientId.company && <p className="text-[10px] text-gray-400">{apt.clientId.company}</p>}
 												<StatusBadge occupied={apt.occupied} />
 											</div>
 											<div className="mt-3 flex gap-2">
-												<EditButton action={() => openEdit(apt)} btnSize="xs" />
+												<EditButton action={() => setEditing(apt)} btnSize="xs" />
 												<RemoveButton action={() => setDeleteTarget(apt)} btnSize="xs" />
 											</div>
 										</div>
@@ -279,24 +296,20 @@ export default function ApartmentsClient({ apartments: initial }: ApartmentsClie
 			</div>
 
 			<p className="text-xs text-gray-500">
-				{filtered.length} appartement{filtered.length > 1 ? "s" : ""}
-				{filtered.length !== apartments.length && ` sur ${apartments.length}`}
+				{sorted.length} appartement{sorted.length > 1 ? "s" : ""}
+				{sorted.length !== apartments.length && ` sur ${apartments.length}`}
 			</p>
 
-			{/* Form modal */}
+			{/* Modals */}
 			{editing && <ApartmentFormModal apartment={editing === "new" ? null : editing} onClose={() => setEditing(null)} onSave={handleSave} />}
-
-			{/* Delete confirmation modal */}
 			{deleteTarget && <DeleteApartmentModal apartment={deleteTarget} deleting={deleting} onConfirm={handleDeleteConfirm} onClose={() => setDeleteTarget(null)} />}
-
-			{/* Details modal */}
 			{detailsTarget && (
 				<ApartmentDetailsModal
 					apartment={detailsTarget}
 					onClose={() => setDetailsTarget(null)}
 					onEdit={(apt) => {
 						setDetailsTarget(null);
-						openEdit(apt);
+						setEditing(apt);
 					}}
 					onDelete={(apt) => {
 						setDetailsTarget(null);
