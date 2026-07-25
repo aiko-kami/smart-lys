@@ -17,6 +17,9 @@ type InvoiceSortKey = "clientName" | "number" | "date" | "total" | "status";
 
 export default function InvoicesClient({ invoices: initial, clients, payment }: { invoices: Invoice[]; clients: Client[]; payment: Payment | null }) {
 	const [invoices, setInvoices] = useState(initial);
+
+	console.log("🚀 ~ InvoicesClient ~ invoices:", invoices[1]);
+
 	const [allClients] = useState<Client[]>(clients);
 
 	const [search, setSearch] = useState("");

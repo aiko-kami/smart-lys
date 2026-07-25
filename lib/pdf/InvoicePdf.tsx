@@ -2,10 +2,9 @@ import React from "react";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 
 function fmt(n: number) {
-	return n.toLocaleString("fr-FR", {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	});
+	const [intPart, decPart] = n.toFixed(2).split(".");
+	const withSpaces = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+	return `${withSpaces},${decPart}`;
 }
 
 function fmtDate(d: string | Date) {

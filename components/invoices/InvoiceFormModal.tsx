@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { FaXmark } from "react-icons/fa6";
+import { FaXmark, FaChevronUp, FaChevronDown } from "react-icons/fa6";
 
 import Modal from "@/components/ui/Modal";
 import Field from "@/components/ui/Field";
@@ -28,7 +28,8 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 
 	// ── TOTAL ─────────────────────────────
 	const total = useMemo(() => {
-		return form.lines.reduce((sum, l) => sum + (l.quantity * l.unitPrice || 0), 0);
+		const raw = form.lines.reduce((sum, l) => sum + (l.quantity * l.unitPrice || 0), 0);
+		return Math.round(raw * 100) / 100;
 	}, [form.lines]);
 
 	function set<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
@@ -90,7 +91,19 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 		setForm((prev) => {
 			const updated = [...prev.lines];
 			updated[index] = { ...updated[index], [key]: value };
-			updated[index].total = updated[index].quantity * updated[index].unitPrice;
+			updated[index].total = Math.round(updated[index].quantity * updated[index].unitPrice * 100) / 100;
+			return { ...prev, lines: updated };
+		});
+	}
+
+	function moveLine(index: number, direction: "up" | "down") {
+		setForm((prev) => {
+			const newIndex = direction === "up" ? index - 1 : index + 1;
+			if (newIndex < 0 || newIndex >= prev.lines.length) return prev;
+
+			const updated = [...prev.lines];
+			[updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+
 			return { ...prev, lines: updated };
 		});
 	}
@@ -209,8 +222,21 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 
 						{form.lines.map((line, i) => (
 							<div key={i}>
-								<div className="grid grid-cols-14 gap-2">
-									<input className={`${INPUT_CLASS} col-span-7`} value={line.description} onChange={(e) => updateLine(i, "description", e.target.value)} />
+								<div className="grid grid-cols-15 gap-2">
+									<div className="col-span-1 flex flex-col items-center justify-center gap-0.5">
+										<button type="button" onClick={() => moveLine(i, "up")} disabled={i === 0} className="text-gray-400 hover:text-white disabled:opacity-20 disabled:hover:text-gray-400">
+											<FaChevronUp size={10} />
+										</button>
+										<button
+											type="button"
+											onClick={() => moveLine(i, "down")}
+											disabled={i === form.lines.length - 1}
+											className="text-gray-400 hover:text-white disabled:opacity-20 disabled:hover:text-gray-400"
+										>
+											<FaChevronDown size={10} />
+										</button>
+									</div>
+									<input className={`${INPUT_CLASS} col-span-6`} value={line.description} onChange={(e) => updateLine(i, "description", e.target.value)} />
 									<input type="number" className={`${INPUT_CLASS} col-span-2`} value={line.quantity} onChange={(e) => updateLine(i, "quantity", Number(e.target.value))} />
 									<input type="number" className={`${INPUT_CLASS} col-span-2`} value={line.unitPrice} onChange={(e) => updateLine(i, "unitPrice", Number(e.target.value))} />
 									<div className="col-span-2 flex items-center justify-center text-sm text-gray-300">{line.total} €</div>
