@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { FaCreditCard } from "react-icons/fa6";
 
 import type { Invoice, Client, Payment } from "@/types";
-import { formatDate } from "@/utils/invoice";
+import { formatDate, fmt } from "@/utils/invoice";
 import InvoiceStatusBadge from "@/components/ui/InvoiceStatusBadge";
 import InvoiceFormModal from "@/components/invoices/InvoiceFormModal";
 import PaymentFormModal from "@/components/invoices/PaymentFormModal";
@@ -219,7 +219,7 @@ export default function InvoicesClient({ invoices: initial, clients, payment }: 
 								<td className="px-5 py-4 text-sm text-white">{getClientName(inv.clientId)}</td>
 								<td className="px-5 py-4 text-center text-sm text-gray-300">{inv.number}</td>
 								<td className="px-5 py-4 text-center text-sm text-gray-300">{formatDate(inv.date)}</td>
-								<td className="px-5 py-4 text-right text-sm font-semibold text-white">{inv.total} €</td>
+								<td className="px-5 py-4 text-right text-sm font-semibold text-white">{fmt(inv.total)} €</td>
 								<td className="px-5 py-4 text-center">
 									<InvoiceStatusBadge status={inv.status} />
 								</td>

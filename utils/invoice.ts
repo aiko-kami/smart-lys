@@ -25,3 +25,7 @@ export function statusClass(status: InvoiceStatus) {
 
 	return map[status];
 }
+
+export function fmt(n: number) {
+	return n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[\u202F\u00A0]/g, " ");
+}

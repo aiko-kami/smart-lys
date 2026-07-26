@@ -7,6 +7,7 @@ import Modal from "@/components/ui/Modal";
 import Field from "@/components/ui/Field";
 import type { InvoiceLine } from "@/types";
 import { INPUT_CLASS } from "@/utils";
+import { fmt } from "@/utils/invoice";
 import { InvoiceFormModalProps } from "@/types/modal";
 
 export default function InvoiceFormModal({ invoice, clients = [], onClose, onSave }: InvoiceFormModalProps) {
@@ -214,8 +215,8 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 					<div className="space-y-3">
 						<div className="flex justify-between">
 							<h3 className="text-sm text-gray-300">Lignes *</h3>
-							<button type="button" onClick={addLine} className="text-xs text-blue-400">
-								+ Ajouter
+							<button type="button" onClick={addLine} className="text-xs text-blue-400 cursor-pointer">
+								+ Ajouter ligne
 							</button>
 						</div>
 						{errors.lines && <p className="text-xs text-red-400">{errors.lines}</p>}
@@ -224,14 +225,19 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 							<div key={i}>
 								<div className="grid grid-cols-15 gap-2">
 									<div className="col-span-1 flex flex-col items-center justify-center gap-0.5">
-										<button type="button" onClick={() => moveLine(i, "up")} disabled={i === 0} className="text-gray-400 hover:text-white disabled:opacity-20 disabled:hover:text-gray-400">
+										<button
+											type="button"
+											onClick={() => moveLine(i, "up")}
+											disabled={i === 0}
+											className="text-gray-400 hover:text-white disabled:opacity-20 disabled:hover:text-gray-400 cursor-pointer"
+										>
 											<FaChevronUp size={10} />
 										</button>
 										<button
 											type="button"
 											onClick={() => moveLine(i, "down")}
 											disabled={i === form.lines.length - 1}
-											className="text-gray-400 hover:text-white disabled:opacity-20 disabled:hover:text-gray-400"
+											className="text-gray-400 hover:text-white disabled:opacity-20 disabled:hover:text-gray-400 cursor-pointer"
 										>
 											<FaChevronDown size={10} />
 										</button>
@@ -240,9 +246,11 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 									<input type="number" className={`${INPUT_CLASS} col-span-2`} value={line.quantity} onChange={(e) => updateLine(i, "quantity", Number(e.target.value))} />
 									<input type="number" className={`${INPUT_CLASS} col-span-2`} value={line.unitPrice} onChange={(e) => updateLine(i, "unitPrice", Number(e.target.value))} />
 									<div className="col-span-2 flex items-center justify-center text-sm text-gray-300">{line.total} €</div>
-									<button type="button" onClick={() => removeLine(i)} className="col-span-1 text-red-400">
-										×
-									</button>
+									<div className="col-span-1 flex items-center justify-center">
+										<button type="button" onClick={() => removeLine(i)} className=" text-red-400 cursor-pointer">
+											×
+										</button>
+									</div>
 								</div>
 								<div>
 									{errors[`line-${i}-description`] && <p className="text-xs text-red-400">{errors[`line-${i}-description`]}</p>}
@@ -257,7 +265,7 @@ export default function InvoiceFormModal({ invoice, clients = [], onClose, onSav
 					<div className="flex justify-end border-t border-white/10 pt-4">
 						<div className="text-right">
 							<p className="text-xs text-gray-400">Total</p>
-							<p className="text-lg font-semibold">{total.toFixed(2)} €</p>
+							<p className="text-lg font-semibold">{fmt(total)} €</p>
 						</div>
 					</div>
 
